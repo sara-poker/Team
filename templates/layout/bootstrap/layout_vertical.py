@@ -24,6 +24,18 @@ menu_file = {
             ]
         },
         {
+            "name": "تیم ها",
+            "icon": "menu-icon tf-icons ti ti-users-group",
+            "slug": "teams",
+            "submenu": [
+                {
+                    "url": "team",
+                    "name": "لیست تیم ها",
+                    "slug": "team_list",
+                },
+            ]
+        },
+        {
             "name": "تنظیمات",
             "icon": "menu-icon tf-icons ti ti-settings",
             "slug": "setting",

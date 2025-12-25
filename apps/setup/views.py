@@ -3,6 +3,17 @@ from django.contrib.auth import get_user_model
 
 from web_project import TemplateLayout
 
+from apps.setup.models import Team
+
+
+class TeamView(TemplateView):
+    def get_context_data(self, **kwargs):
+        context = TemplateLayout.init(self, super().get_context_data(**kwargs))
+
+        teams = Team.objects.all()
+
+        context['teams'] = teams
+        return context
 
 class ProfileView(TemplateView):
     def get_context_data(self, **kwargs):

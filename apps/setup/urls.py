@@ -4,6 +4,11 @@ from django.contrib.auth.decorators import login_required
 
 urlpatterns = [
     path(
+        "team/",
+        login_required(TeamView.as_view(template_name="team.html")),
+        name="team",
+    ),
+    path(
         "setup/profile",
         login_required(ProfileView.as_view(template_name="profile.html")),
         name="profile",
