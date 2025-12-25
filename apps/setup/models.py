@@ -2,7 +2,6 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 
 from django.db import models
-from config import settings
 
 
 class CustomUserManager(BaseUserManager):
@@ -25,6 +24,7 @@ class CustomUserManager(BaseUserManager):
             raise ValueError('Superuser باید is_superuser=True داشته باشد.')
 
         return self.create_user(username, name, password, **extra_fields)
+
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     class Meta:
@@ -50,7 +50,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='user')
     contract_type = models.CharField(max_length=10, choices=CONTRACT_TYPE_CHOICES, default='employee')
 
-    teams = models.ManyToManyField('Team', related_name='members', blank=True)
+    teams = models.ManyToManyField('Team', related_name='members_teams', blank=True, null=True)
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
