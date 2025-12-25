@@ -2,6 +2,8 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 
 from django.db import models
+from config import settings
+
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, username, name, password=None, **extra_fields):
@@ -35,19 +37,46 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ('user', 'User'),
     )
 
+    CONTRACT_TYPE_CHOICES = (
+        ('hourly', 'Hourly'),
+        ('employee', 'Employee'),
+        ('soldier', 'Soldier'),
+    )
+
     username = models.CharField(max_length=150, unique=True)
-    name = models.CharField(max_length=150)
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
     phone = models.CharField(max_length=20, blank=True, null=True)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='user')
+    contract_type = models.CharField(max_length=10, choices=CONTRACT_TYPE_CHOICES, default='employee')
+
+    teams = models.ManyToManyField('Team', related_name='members', blank=True)
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['name']
+    REQUIRED_FIELDS = ['first_name', 'last_name']
 
     objects = CustomUserManager()
 
     def __str__(self):
-        return self.username
+        return self.first_name + " " + self.last_name
 
+
+class Team(models.Model):
+    class Meta:
+        verbose_name = 'تیم'
+        verbose_name_plural = 'تیم ها'
+
+    name = models.CharField(max_length=50, unique=True)
+    parent = models.ForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='sub_teams'
+    )
+
+    def __str__(self):
+        return "تیم " + self.name
