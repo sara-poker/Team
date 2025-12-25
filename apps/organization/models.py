@@ -1,8 +1,14 @@
 from django.core.validators import MinValueValidator, MaxValueValidator
+
 from django.db import models
+from django.db.models import Avg
+from django.utils import timezone
+
 from datetime import datetime, timedelta
 from config import settings
 from apps.setup.models import Team
+
+
 
 
 class Project(models.Model):
@@ -16,15 +22,9 @@ class Project(models.Model):
         ('completed', 'Completed'),
     )
 
-    title = models.CharField(max_length=50, unique=True)
+    code = models.CharField(max_length=20, unique=True)
+    title = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
-    percent = models.FloatField(
-        default=0.0,
-        validators=[
-            MinValueValidator(0.0, message="درصد نمی‌تواند کمتر از 0 باشد"),
-            MaxValueValidator(100.0, message="درصد نمی‌تواند بیشتر از 100 باشد")
-        ]
-    )
     status = models.CharField(max_length=20, choices=STATUS_PROJECT, default='not_started')
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
@@ -40,13 +40,7 @@ class Project(models.Model):
         )
 
     def get_project_progress(self):
-        """محاسبه درصد پیشرفت کل پروژه"""
-        tasks = self.get_all_tasks()
-        if not tasks:
-            return 0.0
-
-        total_percent = sum(task.percent for task in tasks)
-        return total_percent / tasks.count()
+        return self.task_set.aggregate(avg=Avg('percent'))['avg'] or 0
 
     def get_project_duration(self):
         """محاسبه مدت زمان پروژه"""
@@ -141,3 +135,10 @@ class Task(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class TaskComment(models.Model):
+    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
