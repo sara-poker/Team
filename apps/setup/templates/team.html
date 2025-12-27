@@ -135,7 +135,7 @@
         <tbody>
         {% for team in teams %}
           <tr>
-            <td> تیم {{ team.name }}</td>
+            <td> {{ team.name }}</td>
             <td>
               {% if  team.parent.name %}
                 {{ team.parent.name }}
