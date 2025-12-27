@@ -23,11 +23,7 @@ def build_team():
         Team.objects.filter().distinct()
     )
 
-    submenu = [{
-        "url": "team",
-        "name": "افزودن تیم",
-        "slug": "team_list",
-    }]
+    submenu = []
 
     for row in qs:
         team_id = row.id
@@ -40,8 +36,7 @@ def build_team():
             "slug": "team_deteai"
         })
 
-    cache.set(cache_key, submenu, 60 * 60 * 24)  # کش برای ۲۴ ساعت
-    print("BUILD_TEAM EXECUTED")
+    cache.set(cache_key, submenu, 60 * 60 * 24)
     return submenu
 
 
@@ -56,6 +51,18 @@ menu_file = {
                     "url": "index",
                     "name": "نمای کلی",
                     "slug": "dashboard-analytics"
+                }
+            ]
+        },
+        {
+            "name": "مدیریت تیمینو",
+            "icon": "menu-icon tf-icons ti ti-adjustments",
+            "slug": "manager",
+            "submenu": [
+                {
+                    "url": "team",
+                    "name": "افزودن تیم",
+                    "slug": "team_list",
                 }
             ]
         },
