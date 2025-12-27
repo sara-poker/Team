@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.db import models
+from django.utils import timezone
 
+from config import settings
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, username, first_name, last_name, password=None, **extra_fields):
@@ -89,6 +91,11 @@ class Team(models.Model):
         blank=True,
         related_name='sub_teams'
     )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name

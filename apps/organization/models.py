@@ -10,7 +10,6 @@ from apps.setup.models import Team
 
 
 
-
 class Project(models.Model):
     class Meta:
         verbose_name = 'پروژه'
@@ -30,7 +29,11 @@ class Project(models.Model):
     end_date = models.DateField(null=True, blank=True)
     members = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='members_projects', blank=True)
     teams = models.ManyToManyField(Team, related_name='teams_projects', blank=True)
-
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def get_overdue_tasks(self):
         """دریافت تسک‌های تأخیر داشته"""
@@ -93,7 +96,11 @@ class Task(models.Model):
     approval_status = models.BooleanField(default=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     assignees = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='members_tasks')
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

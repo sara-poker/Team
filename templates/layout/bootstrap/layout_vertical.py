@@ -63,6 +63,11 @@ menu_file = {
                     "url": "team",
                     "name": "افزودن تیم",
                     "slug": "team_list",
+                },
+                {
+                    "url": "projects",
+                    "name": "افزودن پروژه",
+                    "slug": "projects",
                 }
             ]
         },

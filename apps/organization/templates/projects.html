@@ -3,7 +3,7 @@
 {% load static %}
 {% load i18n %}
 
-{% block title %}سرور های تست{% endblock %}
+{% block title %}افزودن پروژه{% endblock %}
 
 {% block vendor_css %}
   {{ block.super }}
@@ -74,7 +74,7 @@
     document.addEventListener('DOMContentLoaded', function() {
       const deleteButtons = document.querySelectorAll('.item-delete');
       const serverNameEl = document.getElementById('serverNameInModal');
-      const serverIdInput = document.getElementById('deleteServerId');
+      const serverIdInput = document.getElementById('deleteTeamId');
 
       deleteButtons.forEach(button => {
         button.addEventListener('click', function() {
@@ -90,127 +90,72 @@
 
 {% block content %}
   <h4 class="py-3 mb-4">
-    <span class="text-muted fw-light">  تنظیمات /</span> سرور های تست
+    <span class="text-muted fw-light">  پروژه ها /</span> افزودن پروژه
   </h4>
   <!-- DataTable direct html : by byteMaster at 2024-02-01 -->
   <div class="card mb-4">
-    <h5 class="card-header">اضافه کردن سرور</h5>
+    <h5 class="card-header">اضافه کردن پروژه</h5>
     <form class="card-body" method="post">
       {% csrf_token %}
       <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label" for="multicol-username">نام سرور</label>
-          <input name="server_name" class="form-control" id="multicol-username" placeholder="سرور یک" type="text" />
+          <label class="form-label" for="multicol-username">نام پروژه</label>
+          <input name="project_name" class="form-control" id="multicol-username" placeholder="پروژه یک" type="text" />
         </div>
         <div class="col-md-6">
-          <label class="form-label" for="multicol-ip">آیپی</label>
-          <input name="ip" class="form-control" id="multicol-ip" placeholder="192.168.1.1" type="text" />
-        </div>
-
-      </div>
-      <br>
-      <div class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label" for="select2Basic">کشور سرور:</label>
+          <label class="form-label" for="select2Basic">تیم پدر:</label>
           <select class="select2 form-select form-select-lg" data-allow-clear="true" id="select2Basic"
-                  name="country_server">
-            <option label="انتخاب کشور" value="0">انتخاب کشور</option>
-            {% for item in country %}
-              <option label="{{ item.persian_name }}" value="{{ item.id }}">{{ item.persian_name }}</option>
-            {% endfor %}
-          </select>
-
-        </div>
-        <div class="col-md-6">
-          <label class="form-label" for="select2Basic2">ارائه دهنده خدمات سرور:</label>
-          <select class="select2 form-select form-select-lg" data-allow-clear="true" id="select2Basic2"
-                  name="isp_server">
-            <option label="انتخاب ارائه دهنده" value="0">انتخاب ارائه دهنده</option>
-            {% for item in isp %}
+                  name="parent_team">
+            <option label="انتخاب کشور" value="0">انتخاب پدر</option>
+            {% for item in teams %}
               <option label="{{ item.name }}" value="{{ item.id }}">{{ item.name }}</option>
             {% endfor %}
           </select>
 
         </div>
+
       </div>
       <br>
-      <div class="row g-3">
-        <div class="form-check form-switch mb-2 ps-5">
-          <label class="form-check-label" for="flexSwitchCheckChecked">فعال بودن سرور</label>
-          <input disabled checked name="is_active" class="form-check-input" id="flexSwitchCheckChecked"
-                 type="checkbox" />
-
-        </div>
-      </div>
       <hr class="my-4 mx-n4" />
-      <button class="btn btn-primary me-sm-3 me-1" type="submit">اضافه کردن سرور</button>
+      <button class="btn btn-primary me-sm-3 me-1" type="submit">اضافه کردن تیم</button>
       <button class="btn btn-label-secondary" type="reset">لغو</button>
     </form>
   </div>
   <div class="card">
-    <h5 class="card-header">لیست سرور های تست</h5>
+    <h5 class="card-header">لیست پروژه ها</h5>
     <div class="card-datatable table-responsive pt-0">
       <table class="datatables-direct-basic table">
         <thead>
         <tr>
-          <th>پرچم</th>
-          <th>نام سرور</th>
-          <th>کشور</th>
-          <th>آیپی</th>
-          <th>آدرس</th>
-          <th>ارائه دهنده</th>
+          <th>کد</th>
+          <th>عنوان</th>
+          <th>درصد تکمیل</th>
           <th>وضعیت</th>
-          <th>عملیات</th>
+          <th>ایجاد کننده</th>
+          <th>تاریخ شروع</th>
         </tr>
         </thead>
         <tbody>
-        {% for server in servers %}
+        {% for team in teams %}
           <tr>
+            <td> {{ team.name }}</td>
             <td>
-              <img alt="{{ server.country.name }}"
-                   src="{% static 'img/flag/' %}{{ server.country.name|lower|cut:' ' }}.png"
-                   width="32">
-
-            </td>
-            <td>{{ server.name }}</td>
-            <td>
-              {{ server.country.persian_name }}
-            </td>
-            <td>
-              {{ server.ip }}
-            </td>
-            <td>
-              {% if server.url %}
-                {{ server.url }}
+              {% if  team.parent.name %}
+                {{ team.parent.name }}
               {% else %}
-                ---
+                -
               {% endif %}
-            </td>
-            <td>
-              {{ server.isp }}
-            </td>
-            <td>
-              {% if server.is_active %}
-                <span class="badge  bg-label-success">فعال</span>
-              {% elif server.is_active == False %}
-                <span class="badge  bg-label-danger">غیرفعال</span>
-              {% else %}
-                <span class="badge  bg-label-warning">درحال فعالسازی</span>
-              {% endif %}
-
             </td>
             <td>
               <div class="d-inline-block">
                 <a href="javascript:;" class="btn btn-sm btn-icon item-delete"
-                   data-server-name="{{ server.name }}"
-                   data-server-id="{{ server.id }}"
+                   data-server-name="{{ team.name }}"
+                   data-server-id="{{ team.id }}"
                    data-bs-toggle="modal"
                    data-bs-target="#deleteServerModal">
                   <i class="text-danger ti ti-trash-filled"></i>
                 </a>
               </div>
-              {#              <a href="javascript:;" class="btn btn-sm btn-icon item-edit"><i class="text-primary ti ti-pencil"></i></a>#}
-            </td>
           </tr>
         {% endfor %}
         </tbody>
@@ -228,15 +173,15 @@
       <form method="post" class="modal-content">
         {% csrf_token %}
 
-        <input type="hidden" name="delete_server_id" id="deleteServerId">
+        <input type="hidden" name="delete_team_id" id="deleteTeamId">
 
         <div class="modal-header">
-          <h5 class="modal-title" id="deleteServerModalTitle">حذف سرور</h5>
+          <h5 class="modal-title" id="deleteServerModalTitle">حذف تیم</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
         </div>
 
         <div class="modal-body">
-          <p>آیا از حذف <strong id="serverNameInModal">این سرور</strong> مطمئن هستید؟</p>
+          <p>آیا از حذف <strong id="serverNameInModal">این تیم</strong> مطمئن هستید؟</p>
         </div>
 
         <div class="modal-footer">
