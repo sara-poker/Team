@@ -40,6 +40,7 @@ def build_team():
     return submenu
 
 
+
 menu_file = {
     "menu": [
         {
@@ -144,3 +145,32 @@ class TemplateBootstrapLayoutVertical:
                 item["submenu"] = build_team()
 
         context.update({"menu_data": menu_data})
+
+
+# @staticmethod
+# def init_menu_data(context):
+#     # دریافت اطلاعات کاربر از context
+#     request = context.get('request')
+#     user = request.user if request else None
+#
+#     menu_data = copy.deepcopy(menu_file)
+#     filtered_menu = []
+#
+#     for item in menu_data["menu"]:
+#         # ۱. محدودیت برای کل منوی "مدیریت تیمینو"
+#         if item["slug"] == "manager":
+#             if not user or not (user.role == 'manager' or user.role == 'admin'):
+#                 continue  # اگر کاربر user معمولی بود، کل این بخش حذف می‌شود
+#
+#         # ۲. فیلتر کردن ساب‌منوها (برای نقش admin)
+#         if item["slug"] == "manager" and user and user.role == 'admin':
+#             # ادمین فقط باید "افزودن پروژه" رو ببینه
+#             item["submenu"] = [sub for sub in item["submenu"] if sub["slug"] == "projects"]
+#
+#         # ۳. لود کردن تیم‌ها (کد قبلی خودت)
+#         if item["slug"] == "teams":
+#             item["submenu"] = build_team()
+#
+#         filtered_menu.append(item)
+#
+#     context.update({"menu_data": {"menu": filtered_menu}})

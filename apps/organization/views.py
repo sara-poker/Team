@@ -2,12 +2,13 @@ from django.views.generic import (TemplateView)
 from django.contrib.auth import get_user_model
 from django.db.models import ProtectedError
 from django.shortcuts import redirect, get_object_or_404
+from config.utils import *
 
 from apps.organization.models import *
 from web_project import TemplateLayout
 
 
-class ProjectsView(TemplateView):
+class ProjectsView(StaffRequiredMixin,TemplateView):
     def get_context_data(self, **kwargs):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
         User = get_user_model()

@@ -2,13 +2,13 @@ from django.db.models import ProtectedError
 from django.shortcuts import redirect, get_object_or_404
 from django.views.generic import (TemplateView)
 from django.contrib.auth import get_user_model
-
 from web_project import TemplateLayout
+from config.utils import *
 
 from apps.setup.models import Team
 
 
-class TeamView(TemplateView):
+class TeamView(ManagerOnlyMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
 
@@ -51,7 +51,7 @@ class TeamView(TemplateView):
         return redirect(f"{request.path}?alert_class=success_alert_mo&message=تیم با موفقیت ثبت شد")
 
 
-class TeamDetail(TemplateView):
+class TeamDetail(ManagerOnlyMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
 
@@ -73,7 +73,7 @@ class ProfileView(TemplateView):
         return context
 
 
-class UserDetailView(TemplateView):
+class UserDetailView(StaffRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
 
@@ -87,7 +87,7 @@ class UserDetailView(TemplateView):
         return context
 
 
-class UsersTableView(TemplateView):
+class UsersTableView(StaffRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
 
