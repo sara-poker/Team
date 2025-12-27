@@ -25,6 +25,7 @@ class ProjectsView(StaffRequiredMixin,TemplateView):
         context['projects'] = projects
         context['teams'] = teams
         context['users'] = users
+        # context['role'] =
         return context
 
     def post(self, request, *args, **kwargs):
