@@ -4,13 +4,17 @@ from apps.organization.models import *
 
 from web_project import TemplateLayout
 
+
 class ProjectsView(TemplateView):
     def get_context_data(self, **kwargs):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
         User = get_user_model()
 
         projects = Project.objects.all()
-        teams= Team.objects.all()
+        for project in projects:
+            project.progress = project.get_project_progress()
+
+        teams = Team.objects.all()
         users = User.objects.all()
 
         context['class_notification'] = self.request.GET.get('alert_class', 'none_alert_mo')
@@ -50,5 +54,3 @@ class ProjectsView(TemplateView):
         )
 
         return redirect(f"{request.path}?alert_class=success_alert_mo&message=تیم با موفقیت ثبت شد")
-
-

@@ -49,8 +49,8 @@ class ProjectAdmin(admin.ModelAdmin):
             'fields': ('start_date', 'end_date')
         }),
         ('اعضا و تیم‌ها', {
-            'fields': ('members', 'teams')
-        }),
+            'fields': ('members', 'teams','created_by')
+        })
     )
 
     def get_progress(self, obj):

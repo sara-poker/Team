@@ -9,7 +9,6 @@ from config import settings
 from apps.setup.models import Team
 
 
-
 class Project(models.Model):
     class Meta:
         verbose_name = 'پروژه'
@@ -43,7 +42,28 @@ class Project(models.Model):
         )
 
     def get_project_progress(self):
-        return self.task_set.aggregate(avg=Avg('percent'))['avg'] or 0
+        """
+        محاسبه درصد پیشرفت پروژه با توجه به وزن تسک‌ها
+        - وزن هر تسک بین 1 تا 10 است
+        - میانگین وزن‌دار محاسبه می‌شود
+        - در صورت عدم وجود تسک، 0 بازگردانده می‌شود
+        """
+        tasks = self.task_set.all()
+
+        if not tasks:
+            return 0
+
+        # محاسبه مجموع وزن‌دار درصد‌ها
+        weighted_sum = sum(task.percent * task.weight for task in tasks)
+        total_weight = sum(task.weight for task in tasks)
+
+        if total_weight == 0:
+            return 0
+
+        # محاسبه میانگین وزن‌دار
+        weighted_average = weighted_sum / total_weight
+
+        return weighted_average or 0
 
     def get_project_duration(self):
         """محاسبه مدت زمان پروژه"""

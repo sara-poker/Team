@@ -3,6 +3,8 @@
 {% load static %}
 {% load i18n %}
 
+{% load jformat %}
+
 {% block title %}افزودن پروژه{% endblock %}
 
 {% block vendor_css %}
@@ -97,28 +99,56 @@
     <h5 class="card-header">اضافه کردن پروژه</h5>
     <form class="card-body" method="post">
       {% csrf_token %}
-      <div class="row g-3">
-        <div class="col-md-6">
+
+      <!-- ردیف اول: سه فیلد در کنار هم -->
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
           <label class="form-label" for="multicol-username">نام پروژه</label>
           <input name="project_name" class="form-control" id="multicol-username" placeholder="پروژه یک" type="text" />
         </div>
-        <div class="col-md-6">
-          <label class="form-label" for="select2Basic">تیم پدر:</label>
-          <select class="select2 form-select form-select-lg" data-allow-clear="true" id="select2Basic"
-                  name="parent_team">
-            <option label="انتخاب کشور" value="0">انتخاب پدر</option>
-            {% for item in teams %}
-              <option label="{{ item.name }}" value="{{ item.id }}">{{ item.name }}</option>
-            {% endfor %}
-          </select>
-
+        <div class="col-md-4">
+          <label class="form-label" for="select1Success">تیم</label>
+          <div class="select2-success">
+            <select class="select2 form-select" id="select1Success" name="team_project" multiple>
+              {% for team in teams %}
+                <option value="{{ team.id }}">{{ team.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
         </div>
-
+        <div class="col-md-4">
+          <label class="form-label" for="select2Success">اعضای پروژه</label>
+          <div class="select2-success">
+            <select class="select2 form-select" id="select2Success" name="member_project" multiple>
+              {% for user in users %}
+                <option value="{{ user.id }}">{{ user.first_name }} {{ user.last_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
       </div>
-      <br>
-      <hr class="my-4 mx-n4" />
-      <button class="btn btn-primary me-sm-3 me-1" type="submit">اضافه کردن تیم</button>
-      <button class="btn btn-label-secondary" type="reset">لغو</button>
+
+      <!-- ردیف دوم: توضیحات تمام عرض -->
+      <div class="row g-3 mb-4">
+        <div class="col-12">
+          <label class="form-label" for="description">توضیحات:</label>
+          <textarea
+            name="description"
+            class="form-control"
+            id="description"
+            rows="4"
+            style="font-family: 'IRANSans', sans-serif;"
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- ردیف سوم: دکمه‌ها کنار هم -->
+      <div class="row g-3">
+        <div class="col-12 d-flex justify-content-start gap-2">
+          <button class="btn btn-primary" type="submit">ایجاد پروژه</button>
+          <button class="btn btn-outline-danger" type="reset">لغو</button>
+        </div>
+      </div>
     </form>
   </div>
   <div class="card">
@@ -132,20 +162,27 @@
           <th>درصد تکمیل</th>
           <th>وضعیت</th>
           <th>ایجاد کننده</th>
-          <th>تاریخ شروع</th>
+          <th>تاریخ ایجاد</th>
+          <th>عملیات</th>
         </tr>
         </thead>
         <tbody>
-        {% for team in teams %}
+        {% for project in projects %}
           <tr>
-            <td> {{ team.name }}</td>
+            <td> {{ project.code }}</td>
+            <td> {{ project.title }}</td>
+            <td> {{ project.progress }}</td>
             <td>
-              {% if  team.parent.name %}
-                {{ team.parent.name }}
-              {% else %}
-                -
+              {% if  project.status == "not_started" %}
+                <span class="badge  bg-label-danger">شروع نشده</span>
+              {% elif project.status == "in_progress" %}
+                <span class="badge  bg-label-warning">در حال انجام</span>
+              {% elif project.status == "completed" %}
+                <span class="badge  bg-label-success">تکمیل شده</span>
               {% endif %}
             </td>
+            <td>{{ project.created_by.first_name }} {{ project.created_by.last_name }}</td>
+            <td>{{ project.created_at|jformat:"%H:%M | %Y/%m/%d" }}</td>
             <td>
               <div class="d-inline-block">
                 <a href="javascript:;" class="btn btn-sm btn-icon item-delete"
