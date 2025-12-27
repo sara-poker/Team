@@ -76,7 +76,7 @@
     document.addEventListener('DOMContentLoaded', function() {
       const deleteButtons = document.querySelectorAll('.item-delete');
       const serverNameEl = document.getElementById('serverNameInModal');
-      const serverIdInput = document.getElementById('deleteTeamId');
+      const serverIdInput = document.getElementById('deleteProjectId');
 
       deleteButtons.forEach(button => {
         button.addEventListener('click', function() {
@@ -100,16 +100,15 @@
     <form class="card-body" method="post">
       {% csrf_token %}
 
-      <!-- ردیف اول: سه فیلد در کنار هم -->
       <div class="row g-3 mb-3">
         <div class="col-md-4">
-          <label class="form-label" for="multicol-username">نام پروژه</label>
-          <input name="project_name" class="form-control" id="multicol-username" placeholder="پروژه یک" type="text" />
+          <label class="form-label" for="multicol-username">عنوان پروژه:</label>
+          <input name="project_title" class="form-control" id="multicol-username" placeholder="پروژه یک" type="text" />
         </div>
         <div class="col-md-4">
           <label class="form-label" for="select1Success">تیم</label>
           <div class="select2-success">
-            <select class="select2 form-select" id="select1Success" name="team_project" multiple>
+            <select class="select2 form-select" id="select1Success" name="teams_project" multiple>
               {% for team in teams %}
                 <option value="{{ team.id }}">{{ team.name }}</option>
               {% endfor %}
@@ -128,7 +127,6 @@
         </div>
       </div>
 
-      <!-- ردیف دوم: توضیحات تمام عرض -->
       <div class="row g-3 mb-4">
         <div class="col-12">
           <label class="form-label" for="description">توضیحات:</label>
@@ -186,8 +184,8 @@
             <td>
               <div class="d-inline-block">
                 <a href="javascript:;" class="btn btn-sm btn-icon item-delete"
-                   data-server-name="{{ team.name }}"
-                   data-server-id="{{ team.id }}"
+                   data-server-name="{{ project.tite }}"
+                   data-server-id="{{ project.id }}"
                    data-bs-toggle="modal"
                    data-bs-target="#deleteServerModal">
                   <i class="text-danger ti ti-trash-filled"></i>
@@ -210,15 +208,15 @@
       <form method="post" class="modal-content">
         {% csrf_token %}
 
-        <input type="hidden" name="delete_team_id" id="deleteTeamId">
+        <input type="hidden" name="delete_project_id" id="deleteProjectId">
 
         <div class="modal-header">
-          <h5 class="modal-title" id="deleteServerModalTitle">حذف تیم</h5>
+          <h5 class="modal-title" id="deleteServerModalTitle">حذف پروژه</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
         </div>
 
         <div class="modal-body">
-          <p>آیا از حذف <strong id="serverNameInModal">این تیم</strong> مطمئن هستید؟</p>
+          <p>آیا از حذف <strong id="serverNameInModal">این پروژه</strong> مطمئن هستید؟</p>
         </div>
 
         <div class="modal-footer">
