@@ -1,13 +1,49 @@
 from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Exists, OuterRef
+from apps.setup.models import Team
 
+import copy
 import json
 import requests
 
 from web_project.template_helpers.theme import TemplateHelper
 
 API_BASE = settings.BASE_URL
+
+
+def build_team():
+    cache_key = "teams_submenu"
+    submenu = cache.get(cache_key)
+    if submenu is not None:
+        print("BUILD_TEAM NOT EXECUTED")
+        return submenu
+
+    qs = (
+        Team.objects.filter().distinct()
+    )
+
+    submenu = [{
+        "url": "team",
+        "name": "افزودن تیم",
+        "slug": "team_list",
+    }]
+
+    for row in qs:
+        team_id = row.id
+        team_name = row.name
+
+        submenu.append({
+            "url": f"/team/{team_id}",
+            "external": True,
+            "name": team_name,
+            "slug": "team_deteai"
+        })
+
+    cache.set(cache_key, submenu, 60 * 60 * 24)  # کش برای ۲۴ ساعت
+    print("BUILD_TEAM EXECUTED")
+    return submenu
+
 
 menu_file = {
     "menu": [
@@ -27,13 +63,7 @@ menu_file = {
             "name": "تیم ها",
             "icon": "menu-icon tf-icons ti ti-users-group",
             "slug": "teams",
-            "submenu": [
-                {
-                    "url": "team",
-                    "name": "لیست تیم ها",
-                    "slug": "team_list",
-                },
-            ]
+            "submenu": []
         },
         {
             "name": "تنظیمات",
@@ -74,6 +104,8 @@ The init() function will be called in web_project/__init__.py
 
 
 class TemplateBootstrapLayoutVertical:
+
+    @staticmethod
     def init(context):
         context.update(
             {
@@ -86,16 +118,17 @@ class TemplateBootstrapLayoutVertical:
             }
         )
 
-        # map_context according to updated context values
         TemplateHelper.map_context(context)
-
         TemplateBootstrapLayoutVertical.init_menu_data(context)
 
         return context
 
+    @staticmethod
     def init_menu_data(context):
-        # Load the menu data from the JSON
-        menu_data = menu_file
+        menu_data = copy.deepcopy(menu_file)
 
-        # Updated context with menu_data
+        for item in menu_data["menu"]:
+            if item["slug"] == "teams":
+                item["submenu"] = build_team()
+
         context.update({"menu_data": menu_data})

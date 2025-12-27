@@ -50,6 +50,16 @@ class TeamView(TemplateView):
 
         return redirect(f"{request.path}?alert_class=success_alert_mo&message=تیم با موفقیت ثبت شد")
 
+class TeamDetail(TemplateView):
+    def get_context_data(self, **kwargs):
+        context = TemplateLayout.init(self, super().get_context_data(**kwargs))
+
+        team = Team.objects.filter(id=self.kwargs['pk'])
+
+        context['class_notification'] = self.request.GET.get('alert_class', 'none_alert_mo')
+        context['message'] = self.request.GET.get('message', '')
+        context['team'] = team
+        return context
 
 class ProfileView(TemplateView):
     def get_context_data(self, **kwargs):

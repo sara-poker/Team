@@ -9,6 +9,11 @@ urlpatterns = [
         name="team",
     ),
     path(
+        "team/<int:pk>",
+        login_required(TeamDetail.as_view(template_name="team_detail.html")),
+        name="team_detail",
+    ),
+    path(
         "setup/profile",
         login_required(ProfileView.as_view(template_name="profile.html")),
         name="profile",
@@ -19,7 +24,7 @@ urlpatterns = [
         name="usersTable",
     ),
     path(
-        "setup/user/detail/<int:pk>/",
+        "setup/user/detail/<int:pk>",
         login_required(UserDetailView.as_view(template_name="user_detail.html")),
         name="usersDetail",
     )
