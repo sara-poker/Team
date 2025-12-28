@@ -99,12 +99,12 @@
     <h5 class="card-header">اضافه کردن تیم</h5>
     <form class="card-body" method="post">
       {% csrf_token %}
-      <div class="row g-3">
-        <div class="col-md-6">
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
           <label class="form-label" for="multicol-username">نام تیم</label>
           <input name="team_name" class="form-control" id="multicol-username" placeholder="تیم یک" type="text" />
         </div>
-        <div class="col-md-6">
+        <div class="col-md-4">
           <label class="form-label" for="select2Basic">تیم پدر:</label>
           <select class="select2 form-select form-select-lg" data-allow-clear="true" id="select2Basic"
                   name="parent_team">
@@ -113,9 +113,18 @@
               <option label="{{ item.name }}" value="{{ item.id }}">{{ item.name }}</option>
             {% endfor %}
           </select>
-
         </div>
-
+        <div class="col-md-4">
+          <label class="form-label" for="select2Success">اعضای پروژه</label>
+          <div class="select2-success">
+            <select class="select2 form-select" id="select2Success" name="member_project" multiple>
+              {% for user in users %}
+                <option value="{{ user.id }}">{{ user.first_name }} {{ user.last_name }} ( {{ user.username }} )
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
       </div>
       <br>
       <hr class="my-4 mx-n4" />

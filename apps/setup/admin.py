@@ -43,6 +43,7 @@ class CustomUserAdmin(BaseUserAdmin):
 
     readonly_fields = ()
 
+
 @admin.register(Team)
 class TeamAdmin(admin.ModelAdmin):
     list_display = ('name', 'parent')
