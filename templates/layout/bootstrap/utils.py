@@ -62,13 +62,25 @@ def build_project(user):
 
         print("Query to get all Project")
         new_submenu = []
+        new_submenu_project = []
         for project in projects:
-            new_submenu.append({
+            new_submenu_project.append({
                 "url": f"/projects/{project.id}",
                 "external": True,
                 "name": project.title,
                 "slug": "project_detail"
             })
+        new_submenu.append(new_submenu_project)
+
+        new_submenu_project_tasks = []
+        for project in projects:
+            new_submenu_project_tasks.append({
+                "url": f"/projects/{project.id}/tasks",
+                "external": True,
+                "name": "تسک های " + project.title,
+                "slug": "project_detail"
+            })
+        new_submenu.append(new_submenu_project_tasks)
 
         cache.set(cache_key, new_submenu, 60 * 60 * 24)
         return new_submenu

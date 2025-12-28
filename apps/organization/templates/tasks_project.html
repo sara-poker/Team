@@ -1,0 +1,100 @@
+{% extends layout_path %}
+
+{% load static %}
+{% load i18n %}
+
+{% load jformat %}
+
+{% block title %}پروژه {{ project.title }}{% endblock %}
+
+{% block vendor_css %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'vendor/libs/datatables-bs5/datatables.bootstrap5.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/flatpickr/flatpickr.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/@form-validation/umd/styles/index.min.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/flatpickr/flatpickr.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/select2/select2.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/spinkit/spinkit.css' %}" />
+{% endblock vendor_css %}
+
+{% block vendor_js %}
+  {{ block.super }}
+  <script src="{% static 'vendor/libs/datatables-bs5/datatables-bootstrap5.js' %}"></script>
+  <script src="{% static 'vendor/libs/moment/moment.js' %}"></script>
+  <script src="{% static 'libs/jdate/jdate.min.js' %}"></script>
+  <script src="{% static 'vendor/libs/flatpickr/flatpickr.js' %}"></script>
+  <script src="{% static 'libs/flatpickr/flatpickr-jdate.js' %}"></script>
+  <script src="{% static 'libs/flatpickr-jalali/dist/l10n/fa.js' %}"></script>
+  <script src="{% static 'vendor/libs/@form-validation/umd/bundle/popular.min.js' %}"></script>
+  <script src="{% static 'vendor/libs/@form-validation/umd/plugin-bootstrap5/index.min.js' %}"></script>
+  <script src="{% static 'vendor/libs/@form-validation/umd/plugin-auto-focus/index.min.js' %}"></script>
+
+  <script src="{% static 'vendor/libs/select2/select2.js' %}"></script>
+
+
+{% endblock vendor_js %}
+
+{% block page_css %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'vendor/css/pages/cards-advance.css' %}" />
+  <style>
+    #alert_mo {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      z-index: 5000;
+    }
+
+    .none_alert_mo {
+      display: none !important;
+    }
+
+    .success_alert_mo {
+      color: #00b300 !important;
+      background: #cfeee6 !important;
+      border: 2px solid #00b300 !important;
+    }
+
+    .err_alert_mo {
+      color: #b30000 !important;
+      background: #eecfcf !important;
+      border: 2px solid #b30000 !important;
+    }
+
+  </style>
+{% endblock page_css %}
+
+{% block page_js %}
+  {{ block.super }}
+  <script src="{% static 'js/tables-datatables-basic.js' %}"></script>
+  <script src="{% static 'js/form-layouts.js' %}"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const deleteButtons = document.querySelectorAll('.item-delete');
+      const serverNameEl = document.getElementById('serverNameInModal');
+      const serverIdInput = document.getElementById('deleteProjectId');
+
+      deleteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const name = this.getAttribute('data-server-name');
+          const id = this.getAttribute('data-server-id');
+          serverNameEl.textContent = name;
+          serverIdInput.value = id;
+        });
+      });
+    });
+  </script>
+{% endblock page_js %}
+
+{% block content %}
+  <h4 class="py-3 mb-4">
+    <span class="text-muted fw-light">  پروژه ها /</span> پروژه {{ project.title }}
+  </h4>
+
+
+
+{% endblock %}

@@ -42,6 +42,12 @@ menu_manager = {
             "submenu": []
         },
         {
+            "name": "تسک ها",
+            "icon": "menu-icon tf-icons ti ti-briefcase",
+            "slug": "tasks_project",
+            "submenu": []
+        },
+        {
             "name": "تنظیمات",
             "icon": "menu-icon tf-icons ti ti-settings",
             "slug": "setting",
@@ -112,6 +118,12 @@ menu_admin = {
             "submenu": []
         },
         {
+            "name": "تسک ها",
+            "icon": "menu-icon tf-icons ti ti-briefcase",
+            "slug": "tasks_project",
+            "submenu": []
+        },
+        {
             "name": "تنظیمات",
             "icon": "menu-icon tf-icons ti ti-settings",
             "slug": "setting",
@@ -167,6 +179,12 @@ menu_user = {
             "name": "پروژه ها",
             "icon": "menu-icon tf-icons ti ti-users-group",
             "slug": "projects",
+            "submenu": []
+        },
+        {
+            "name": "تسک ها",
+            "icon": "menu-icon tf-icons ti ti-briefcase",
+            "slug": "tasks_project",
             "submenu": []
         },
         {

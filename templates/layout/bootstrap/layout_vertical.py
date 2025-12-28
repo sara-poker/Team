@@ -58,12 +58,23 @@ class TemplateBootstrapLayoutVertical:
 
             for i, item in enumerate(menu_data["menu"]):
                 if item.get("slug") == "projects":
-                    projects_submenu = build_project(user)
+                    projects_submenu = build_project(user)[0]
 
                     if not projects_submenu:
                         del menu_data["menu"][i]
                     else:
                         item["submenu"] = projects_submenu
+
+                    break
+
+            for i, item in enumerate(menu_data["menu"]):
+                if item.get("slug") == "tasks_project":
+                    projects_tasks_submenu = build_project(user)[1]
+
+                    if not projects_tasks_submenu:
+                        del menu_data["menu"][i]
+                    else:
+                        item["submenu"] = projects_tasks_submenu
 
                     break
 
