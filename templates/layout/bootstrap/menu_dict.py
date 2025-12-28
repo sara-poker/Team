@@ -94,6 +94,12 @@ menu_admin = {
             ]
         },
         {
+            "name": "تیم ها",
+            "icon": "menu-icon tf-icons ti ti-users-group",
+            "slug": "teams",
+            "submenu": []
+        },
+        {
             "name": "تنظیمات",
             "icon": "menu-icon tf-icons ti ti-settings",
             "slug": "setting",
@@ -138,6 +144,12 @@ menu_user = {
                     "slug": "dashboard-analytics"
                 }
             ]
+        },
+        {
+            "name": "تیم ها",
+            "icon": "menu-icon tf-icons ti ti-users-group",
+            "slug": "teams",
+            "submenu": []
         },
         {
             "name": "تنظیمات",

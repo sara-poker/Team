@@ -13,9 +13,12 @@ API_BASE = settings.BASE_URL
 
 
 def build_team(user):
-    cache_key = "teams_submenu"
-    submenu = cache.get(cache_key)
+    if not user or not user.is_authenticated:
+        return []
 
+    cache_key = f"teams_submenu_user_{user.id}"
+
+    submenu = cache.get(cache_key)
     if submenu is not None:
         return submenu
 

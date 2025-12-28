@@ -60,7 +60,7 @@ class TeamView(ManagerOnlyMixin, TemplateView):
         return redirect(f"{request.path}?alert_class=success_alert_mo&message=تیم با موفقیت ثبت شد")
 
 
-class TeamDetail(ManagerOnlyMixin, TemplateView):
+class TeamDetail(TemplateView):
     def get_context_data(self, **kwargs):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
 
