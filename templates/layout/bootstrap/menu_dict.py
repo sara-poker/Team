@@ -1,4 +1,4 @@
-menu_manger = {
+menu_manager = {
     "menu": [
         {
             "name": "پیشخوان",

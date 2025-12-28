@@ -1,7 +1,7 @@
 import copy
 from web_project.template_helpers.theme import TemplateHelper
 from ..bootstrap.utils import *
-from ..bootstrap.menu_dict import menu_user, menu_manger, menu_admin
+from ..bootstrap.menu_dict import menu_user, menu_manager, menu_admin
 
 
 class TemplateBootstrapLayoutVertical:
@@ -36,7 +36,7 @@ class TemplateBootstrapLayoutVertical:
         # حالا منطق قبلی رو ادامه می‌دیم
         if user and user.is_authenticated:
             if user.role == "manager":
-                selected_menu = menu_manger
+                selected_menu = menu_manager
             elif user.role == "admin":
                 selected_menu = menu_admin
             else:
@@ -46,7 +46,6 @@ class TemplateBootstrapLayoutVertical:
 
         menu_data = copy.deepcopy(selected_menu)
 
-        # بررسی وجود اسلاگ teams برای جلوگیری از اجرای بیهوده تابع
         if "menu" in menu_data:
             for item in menu_data["menu"]:
                 if item.get("slug") == "teams":

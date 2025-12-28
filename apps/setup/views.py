@@ -46,6 +46,7 @@ class TeamView(ManagerOnlyMixin, TemplateView):
         Team.objects.create(
             name=name,
             parent_id=parent_team,
+            created_by=request.user
         )
 
         return redirect(f"{request.path}?alert_class=success_alert_mo&message=تیم با موفقیت ثبت شد")
