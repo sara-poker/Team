@@ -8,24 +8,38 @@ from apps.organization.models import *
 from web_project import TemplateLayout
 
 
-class ProjectsView(StaffRequiredMixin,TemplateView):
+class ProjectsView(StaffRequiredMixin, TemplateView):
+    from django.contrib.auth import get_user_model
+
     def get_context_data(self, **kwargs):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
         User = get_user_model()
 
-        projects = Project.objects.all()
+        user = self.request.user
+
+        projects = Project.objects.filter(members=user)
         for project in projects:
             project.progress = project.get_project_progress()
 
-        teams = Team.objects.all()
-        users = User.objects.all()
+        teams = Team.objects.filter(members_teams=user).distinct()
+
+        if user.role == 'manager':
+            users = User.objects.all().exclude(id=self.request.user.id)
+
+        elif user.role == 'admin':
+            users = User.objects.filter(
+                teams__in=teams
+            ).exclude(id=self.request.user.id).distinct()
+
+        else:
+            users = User.objects.filter(id=user.id)
 
         context['class_notification'] = self.request.GET.get('alert_class', 'none_alert_mo')
         context['message'] = self.request.GET.get('message', '')
         context['projects'] = projects
         context['teams'] = teams
         context['users'] = users
-        # context['role'] =
+
         return context
 
     def post(self, request, *args, **kwargs):
@@ -49,7 +63,6 @@ class ProjectsView(StaffRequiredMixin,TemplateView):
                 code = 1001
         else:
             code = 1001
-
 
         title = request.POST.get('project_title', '').strip()
         teams_id = request.POST.getlist('teams_project', '')

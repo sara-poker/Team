@@ -49,7 +49,7 @@ class TemplateBootstrapLayoutVertical:
         if "menu" in menu_data:
             for i, item in enumerate(menu_data["menu"]):
                 if item.get("slug") == "teams":
-                    teams_submenu = build_team()
+                    teams_submenu = build_team(user)
 
                     if not teams_submenu:
                         del menu_data["menu"][i]

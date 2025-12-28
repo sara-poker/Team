@@ -12,7 +12,7 @@ from web_project.template_helpers.theme import TemplateHelper
 API_BASE = settings.BASE_URL
 
 
-def build_team():
+def build_team(user):
     cache_key = "teams_submenu"
     submenu = cache.get(cache_key)
 
@@ -20,7 +20,7 @@ def build_team():
         return submenu
 
     try:
-        qs = Team.objects.all().distinct()
+        qs = Team.objects.filter(members_teams=user).distinct()
 
         new_submenu = []
         for row in qs:
