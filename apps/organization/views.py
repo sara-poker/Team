@@ -17,7 +17,10 @@ class ProjectsView(StaffRequiredMixin, TemplateView):
 
         user = self.request.user
 
-        projects = Project.objects.filter(members=user)
+        projects = Project.objects.filter(
+            teams__members_teams=user
+        ).distinct()
+
         for project in projects:
             project.progress = project.get_project_progress()
 
