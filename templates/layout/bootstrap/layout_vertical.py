@@ -27,13 +27,11 @@ class TemplateBootstrapLayoutVertical:
 
     @staticmethod
     def init_menu_data(context):
-        # از داخل شیء view که در context هست، request رو بیرون می‌کشیم
         view = context.get('view')
         request = getattr(view, 'request', None)
 
         user = request.user if request else None
 
-        # حالا منطق قبلی رو ادامه می‌دیم
         if user and user.is_authenticated:
             if user.role == "manager":
                 selected_menu = menu_manager

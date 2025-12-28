@@ -39,27 +39,41 @@ def build_team(user):
         return []
 
 def build_project(user):
-    cache_key = "teams_submenu"
+    cache_key = f"projects_submenu_{user.id}_{user.role}"
     submenu = cache.get(cache_key)
 
     if submenu is not None:
         return submenu
 
     try:
-        qs = Team.objects.filter(members_teams=user).distinct()
+        # manager و admin → پروژه‌های تیم‌ها
+        if user.role in ('manager', 'admin'):
+            projects = (
+                Project.objects
+                .filter(teams__members_teams=user)
+                .distinct()
+            )
+
+        # user → پروژه‌های اساین‌شده به خودش
+        else:
+            projects = (
+                Project.objects
+                .filter(members=user)
+                .distinct()
+            )
 
         new_submenu = []
-        for row in qs:
+        for project in projects:
             new_submenu.append({
-                "url": f"/team/{row.id}",
+                "url": f"/project/{project.id}",
                 "external": True,
-                "name": row.name,
-                "slug": "team_detail"
+                "name": project.title,
+                "slug": "project_detail"
             })
 
         cache.set(cache_key, new_submenu, 60 * 60 * 24)
         return new_submenu
 
     except Exception as e:
-        print(f"Error in build_team: {e}")
+        print(f"Error in build_project: {e}")
         return []
