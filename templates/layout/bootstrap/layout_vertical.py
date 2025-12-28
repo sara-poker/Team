@@ -44,7 +44,7 @@ class TemplateBootstrapLayoutVertical:
 
         menu_data = copy.deepcopy(selected_menu)
 
-        if "menu" in menu_data:
+        if "menu" in menu_data and user.is_authenticated:
             for i, item in enumerate(menu_data["menu"]):
                 if item.get("slug") == "teams":
                     teams_submenu = build_team(user)
@@ -56,4 +56,17 @@ class TemplateBootstrapLayoutVertical:
 
                     break
 
+            for i, item in enumerate(menu_data["menu"]):
+                if item.get("slug") == "projects":
+                    projects_submenu = build_project(user)
+
+                    if not projects_submenu:
+                        del menu_data["menu"][i]
+                    else:
+                        item["submenu"] = projects_submenu
+
+                    break
+
         context.update({"menu_data": menu_data})
+
+

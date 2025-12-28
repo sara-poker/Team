@@ -8,4 +8,9 @@ urlpatterns = [
         login_required(ProjectsView.as_view(template_name="projects.html")),
         name="projects",
     ),
+    path(
+        "projects/<int:pk>",
+        login_required(ProjectDetail.as_view(template_name="projects_detail.html")),
+        name="projects_detail",
+    )
 ]

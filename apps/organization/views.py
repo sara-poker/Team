@@ -95,3 +95,14 @@ class ProjectsView(StaffRequiredMixin, TemplateView):
             project.members.set(members_id)
 
         return redirect(f"{request.path}?alert_class=success_alert_mo&message=پروژه با موفقیت ثبت شد")
+
+class ProjectDetail(TemplateView):
+    def get_context_data(self, **kwargs):
+        context = TemplateLayout.init(self, super().get_context_data(**kwargs))
+
+        project = get_object_or_404(Project, id=self.kwargs['pk'])
+
+        context['class_notification'] = self.request.GET.get('alert_class', 'none_alert_mo')
+        context['message'] = self.request.GET.get('message', '')
+        context['project'] = project
+        return context

@@ -1,13 +1,8 @@
 from django.conf import settings
 from django.core.cache import cache
-from django.db.models import Exists, OuterRef
+
 from apps.setup.models import Team
-
-import copy
-import json
-import requests
-
-from web_project.template_helpers.theme import TemplateHelper
+from apps.organization.models import Project
 
 API_BASE = settings.BASE_URL
 
@@ -24,6 +19,7 @@ def build_team(user):
 
     try:
         qs = Team.objects.filter(members_teams=user).distinct()
+        print("Query to get all teams")
 
         new_submenu = []
         for row in qs:
@@ -41,6 +37,7 @@ def build_team(user):
         print(f"Error in build_team: {e}")
         return []
 
+
 def build_project(user):
     cache_key = f"projects_submenu_{user.id}_{user.role}"
     submenu = cache.get(cache_key)
@@ -49,7 +46,6 @@ def build_project(user):
         return submenu
 
     try:
-        # manager و admin → پروژه‌های تیم‌ها
         if user.role in ('manager', 'admin'):
             projects = (
                 Project.objects
@@ -57,7 +53,6 @@ def build_project(user):
                 .distinct()
             )
 
-        # user → پروژه‌های اساین‌شده به خودش
         else:
             projects = (
                 Project.objects
@@ -65,10 +60,11 @@ def build_project(user):
                 .distinct()
             )
 
+        print("Query to get all Project")
         new_submenu = []
         for project in projects:
             new_submenu.append({
-                "url": f"/project/{project.id}",
+                "url": f"/projects/{project.id}",
                 "external": True,
                 "name": project.title,
                 "slug": "project_detail"

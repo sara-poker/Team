@@ -36,6 +36,12 @@ menu_manager = {
             "submenu": []
         },
         {
+            "name": "پروژه ها",
+            "icon": "menu-icon tf-icons ti ti-briefcase",
+            "slug": "projects",
+            "submenu": []
+        },
+        {
             "name": "تنظیمات",
             "icon": "menu-icon tf-icons ti ti-settings",
             "slug": "setting",
@@ -100,6 +106,12 @@ menu_admin = {
             "submenu": []
         },
         {
+            "name": "پروژه ها",
+            "icon": "menu-icon tf-icons ti ti-users-group",
+            "slug": "projects",
+            "submenu": []
+        },
+        {
             "name": "تنظیمات",
             "icon": "menu-icon tf-icons ti ti-settings",
             "slug": "setting",
@@ -149,6 +161,12 @@ menu_user = {
             "name": "تیم ها",
             "icon": "menu-icon tf-icons ti ti-users-group",
             "slug": "teams",
+            "submenu": []
+        },
+        {
+            "name": "پروژه ها",
+            "icon": "menu-icon tf-icons ti ti-users-group",
+            "slug": "projects",
             "submenu": []
         },
         {
