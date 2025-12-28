@@ -3,6 +3,8 @@
 {% load static %}
 {% load i18n %}
 
+{% load jformat %}
+
 {% block title %}افزودن تیم{% endblock %}
 
 {% block vendor_css %}
@@ -129,6 +131,8 @@
         <tr>
           <th>نام</th>
           <th>تیم پدر</th>
+          <th>تاریخ ایجاد</th>
+          <th>ایجاد کننده</th>
           <th>عملیات</th>
         </tr>
         </thead>
@@ -143,6 +147,8 @@
                 -
               {% endif %}
             </td>
+            <td>{{ team.created_at|jformat:"%H:%M | %Y/%m/%d" }}</td>
+            <td>{{ team.created_by.first_name }} {{ team.created_by.last_name }}</td>
             <td>
               <div class="d-inline-block">
                 <a href="javascript:;" class="btn btn-sm btn-icon item-delete"
