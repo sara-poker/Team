@@ -50,7 +50,6 @@ class ProjectsView(StaffRequiredMixin,TemplateView):
         else:
             code = 1001
 
-        print("code>>", code)
 
         title = request.POST.get('project_title', '').strip()
         teams_id = request.POST.getlist('teams_project', '')

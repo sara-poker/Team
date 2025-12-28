@@ -12,15 +12,17 @@ class TeamView(ManagerOnlyMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
 
+        User = get_user_model()
+        users = User.objects.all().exclude(id=self.request.user.id)
         teams = Team.objects.filter(members_teams=self.request.user)
 
         context['class_notification'] = self.request.GET.get('alert_class', 'none_alert_mo')
         context['message'] = self.request.GET.get('message', '')
         context['teams'] = teams
+        context['users'] = users
         return context
 
     def post(self, request, *args, **kwargs):
-        # حذف سرور (اگر فرم حذف ارسال شده باشه)
         if 'delete_team_id' in request.POST:
             team_id = request.POST.get('delete_team_id')
             try:
@@ -30,9 +32,10 @@ class TeamView(ManagerOnlyMixin, TemplateView):
                 return redirect(
                     f"{request.path}?alert_class=err_alert_mo&message=برای این تیم پروژه و تسک هایی تعریف شده است، برای حذف تیم ابتدا پروژه های آن را به سایر تیم ها منتقل کنید.")
 
-        # اضافه کردن سرور جدید
+        User = get_user_model()
         name = request.POST.get('team_name', '').strip()
         parent_team = request.POST.get('parent_team')
+        members_id = request.POST.getlist('member_project', '')
 
         if not name:
             return redirect(f"{request.path}?alert_class=err_alert_mo&message=لطفاً فیلد نام را پر کنید.")
@@ -43,11 +46,16 @@ class TeamView(ManagerOnlyMixin, TemplateView):
         if parent_team == 0 or parent_team == "0" or not parent_team:
             parent_team = None
 
-        Team.objects.create(
+        team = Team.objects.create(
             name=name,
             parent_id=parent_team,
             created_by=request.user
         )
+
+        members = User.objects.filter(id__in=members_id)
+
+        team.members_teams.add(request.user)
+        team.members_teams.add(*members)
 
         return redirect(f"{request.path}?alert_class=success_alert_mo&message=تیم با موفقیت ثبت شد")
 
