@@ -12,7 +12,7 @@ class TeamView(ManagerOnlyMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
 
-        teams = Team.objects.all()
+        teams = Team.objects.filter(members_teams=self.request.user)
 
         context['class_notification'] = self.request.GET.get('alert_class', 'none_alert_mo')
         context['message'] = self.request.GET.get('message', '')
