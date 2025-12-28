@@ -90,6 +90,7 @@ class Task(models.Model):
     STATUS_TASK = (
         ('not_started', 'Not started'),
         ('in_progress', 'In progress'),
+        ('reviewing', 'Reviewing'),
         ('completed', 'Completed'),
     )
 

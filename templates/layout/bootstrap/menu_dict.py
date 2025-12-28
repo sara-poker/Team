@@ -1,16 +1,10 @@
 menu_manager = {
     "menu": [
         {
+            "url": "index",
             "name": "پیشخوان",
             "icon": "menu-icon tf-icons ti ti-layout-dashboard",
-            "slug": "dashboard",
-            "submenu": [
-                {
-                    "url": "index",
-                    "name": "نمای کلی",
-                    "slug": "dashboard-analytics"
-                }
-            ]
+            "slug": "dashboard-analytics"
         },
         {
             "name": "مدیریت تیمینو",
@@ -43,7 +37,7 @@ menu_manager = {
         },
         {
             "name": "تسک ها",
-            "icon": "menu-icon tf-icons ti ti-briefcase",
+            "icon": "menu-icon tf-icons ti ti-list-check",
             "slug": "tasks_project",
             "submenu": []
         },
@@ -82,16 +76,10 @@ menu_manager = {
 menu_admin = {
     "menu": [
         {
+            "url": "index",
             "name": "پیشخوان",
             "icon": "menu-icon tf-icons ti ti-layout-dashboard",
-            "slug": "dashboard",
-            "submenu": [
-                {
-                    "url": "index",
-                    "name": "نمای کلی",
-                    "slug": "dashboard-analytics"
-                }
-            ]
+            "slug": "dashboard-analytics"
         },
         {
             "name": "مدیریت تیمینو",
@@ -113,13 +101,13 @@ menu_admin = {
         },
         {
             "name": "پروژه ها",
-            "icon": "menu-icon tf-icons ti ti-users-group",
+            "icon": "menu-icon tf-icons ti ti-briefcase",
             "slug": "projects",
             "submenu": []
         },
         {
             "name": "تسک ها",
-            "icon": "menu-icon tf-icons ti ti-briefcase",
+            "icon": "menu-icon tf-icons ti ti-list-check",
             "slug": "tasks_project",
             "submenu": []
         },
@@ -158,16 +146,10 @@ menu_admin = {
 menu_user = {
     "menu": [
         {
+            "url": "index",
             "name": "پیشخوان",
             "icon": "menu-icon tf-icons ti ti-layout-dashboard",
-            "slug": "dashboard",
-            "submenu": [
-                {
-                    "url": "index",
-                    "name": "نمای کلی",
-                    "slug": "dashboard-analytics"
-                }
-            ]
+            "slug": "dashboard-analytics"
         },
         {
             "name": "تیم ها",
@@ -177,13 +159,13 @@ menu_user = {
         },
         {
             "name": "پروژه ها",
-            "icon": "menu-icon tf-icons ti ti-users-group",
+            "icon": "menu-icon tf-icons ti ti-briefcase",
             "slug": "projects",
             "submenu": []
         },
         {
             "name": "تسک ها",
-            "icon": "menu-icon tf-icons ti ti-briefcase",
+            "icon": "menu-icon tf-icons ti ti-list-check",
             "slug": "tasks_project",
             "submenu": []
         },
