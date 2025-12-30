@@ -1,9 +1,11 @@
 from django.db.models.signals import post_save, pre_delete, m2m_changed
 from django.dispatch import receiver
-from .models import Project, Team
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
+from .models import Project, Team, Task
 User = get_user_model()
 
 
@@ -73,3 +75,11 @@ def clear_cache_when_team_membership_changes(sender, instance, action, pk_set, *
         projects = instance.teams_projects.all()
         for proj in projects:
             clear_cache_for_all_related_users(proj)
+
+
+@receiver(pre_save, sender=Task)
+def sync_task_status_and_percent_signal(sender, instance, **kwargs):
+    if instance.percent >= 100 and instance.status != 'reviewing':
+        instance.status = 'reviewing'
+    elif instance.status == 'reviewing' and instance.percent < 100:
+        instance.percent = 100

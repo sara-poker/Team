@@ -126,16 +126,16 @@ class Task(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def get_task_priority(self):
-        """محاسبه اولویت تسک بر اساس وزن و deadline"""
-        if not self.deadline:
+        if not self.deadline or self.status == 'completed':
             return self.weight
 
-        days_remaining = self.get_time_remaining()
-        if days_remaining is None:
+        diff = self.get_time_difference()
+        if diff is None:
             return self.weight
 
-        # اولویت بالاتر برای تسک‌های نزدیک deadline
-        priority_multiplier = max(1, 10 / max(days_remaining, 1))
+        days = abs(diff.days)
+
+        priority_multiplier = max(1, 10 / max(days, 1))
         return self.weight * priority_multiplier
 
     def get_task_assignees_count(self):

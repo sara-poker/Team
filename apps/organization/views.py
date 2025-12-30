@@ -2,9 +2,14 @@ from django.views.generic import (TemplateView)
 from django.contrib.auth import get_user_model
 from django.db.models import ProtectedError
 from django.shortcuts import redirect, get_object_or_404
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
+from rest_framework.views import APIView
+
 from config.utils import *
 
 from apps.organization.models import *
+from apps.organization.serializers import *
 from web_project import TemplateLayout
 
 
@@ -96,6 +101,7 @@ class ProjectsView(StaffRequiredMixin, TemplateView):
 
         return redirect(f"{request.path}?alert_class=success_alert_mo&message=پروژه با موفقیت ثبت شد")
 
+
 class ProjectDetail(TemplateView):
     def get_context_data(self, **kwargs):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
@@ -107,14 +113,39 @@ class ProjectDetail(TemplateView):
         context['project'] = project
         return context
 
+
 class TasksProjectDetail(TemplateView):
     def get_context_data(self, **kwargs):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
 
         project = get_object_or_404(Project, id=self.kwargs['pk'])
 
+        qu_pa = self.request.GET.get('status', 'not_started')
+
         context['class_notification'] = self.request.GET.get('alert_class', 'none_alert_mo')
         context['message'] = self.request.GET.get('message', '')
         context['project'] = project
+        context['qu_pa'] = qu_pa
         return context
 
+
+class GetAllTaskView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, project_id):
+
+        queryset = Task.objects.filter(project_id=project_id)
+
+        status_param = request.query_params.get('status')
+        if status_param:
+            queryset = queryset.filter(status=status_param)
+
+        tasks = list(queryset)
+
+        tasks.sort(
+            key=lambda task: task.get_task_priority(),
+            reverse=True
+        )
+
+        serializer = GetAllTaskAPISerializer(tasks, many=True)
+        return Response(serializer.data)

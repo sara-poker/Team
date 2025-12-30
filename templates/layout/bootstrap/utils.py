@@ -78,7 +78,7 @@ def build_project(user):
                 "url": f"/projects/{project.id}/tasks",
                 "external": True,
                 "name": "تسک های " + project.title,
-                "slug": "project_detail"
+                "slug": "project_detail",
             })
         new_submenu.append(new_submenu_project_tasks)
 

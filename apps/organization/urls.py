@@ -17,5 +17,10 @@ urlpatterns = [
         "projects/<int:pk>/tasks",
         login_required(TasksProjectDetail.as_view(template_name="tasks_project.html")),
         name="tasks_project",
+    ),
+    path(
+        "api/getAllTask/<int:project_id>",
+        GetAllTaskView.as_view(),
+        name="get_all_tast"
     )
 ]
