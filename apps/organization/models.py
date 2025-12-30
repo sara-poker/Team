@@ -62,6 +62,7 @@ class Project(models.Model):
 
         # محاسبه میانگین وزن‌دار
         weighted_average = weighted_sum / total_weight
+        weighted_average = round(weighted_average, 2)
 
         return weighted_average or 0
 
