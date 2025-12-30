@@ -2,7 +2,7 @@
 
 {% load static %}
 {% load i18n %}
-
+{% load jformat %}
 {% block title %}اپراتور ها{% endblock %}
 
 {% block vendor_css %}
@@ -223,7 +223,6 @@
 
   <script>
     $(function() {
-      // انتخاب جدول با ID جدید
       var table_element = $('#my_tasks_table');
 
       if (table_element.length) {
@@ -233,7 +232,7 @@
         var dt_basic = table_element.DataTable({
           ajax: {
             url: window.location.origin + url1,
-            dataSrc: '' // مطمئن شوید خروجی API شما یک Array مستقیم است
+            dataSrc: ''
           },
           order: [],
           language: {
@@ -281,23 +280,17 @@
 
   <script>
     $(function() {
-      // گرفتن آدرس کامل فعلی
       var currentUrl = window.location.pathname + window.location.search;
 
-      // پیدا کردن تمام لینک‌های داخل ناوبری
       $('#infoTabs .nav-link').each(function() {
         var tabHref = $(this).attr('href');
 
-        // اگر آدرس فعلی شامل href این تب بود
         if (currentUrl === tabHref) {
-          // اول همه رو از حالت active دربیار
           $('#infoTabs .nav-link').removeClass('active');
-          // این یکی رو active کن
           $(this).addClass('active');
         }
       });
 
-      // حالت رزرو: اگر هیچ تبی انتخاب نشد (مثلاً آدرس بدون پارامتر بود)
       if ($('#infoTabs .nav-link.active').length === 0) {
         $('#infoTabs .nav-link:first').addClass('active');
       }
@@ -319,27 +312,31 @@
   </div>
 
 
-
+  <div class="row">
+    <h4 class="py-3 mb-4">
+      <span class="text-muted fw-light"> تسک ها /</span> پروژه {{ project.title }}
+    </h4>
+  </div>
   <div class="row">
     <div class="col-md-12 order-0 order-md-1">
       <ul class="nav nav-pills flex-column flex-md-row mb-4" id="infoTabs">
         <li class="nav-item">
-          <a class="nav-link" href="/projects/{{ project.id }}/tasks">
+          <a class="nav-link" href="/projects/{{ project.id }}/tasks/{{ task.id }}/">
             <i class="ti ti-list-check ti-xs me-1"></i>اخیرا ایجاد شده
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/projects/{{ project.id }}/tasks?status=in_progress">
+          <a class="nav-link" href="/projects/{{ project.id }}/tasks/{{ task.id }}/?status=in_progress">
             <i class="ti ti-player-play ti-xs me-1"></i>در حال انجام
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/projects/{{ project.id }}/tasks?status=reviewing">
+          <a class="nav-link" href="/projects/{{ project.id }}/tasks/{{ task.id }}/?status=reviewing">
             <i class="ti ti-eye ti-xs me-1"></i>در حال بررسی مدیر
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/projects/{{ project.id }}/tasks?status=completed">
+          <a class="nav-link" href="/projects/{{ project.id }}/tasks/{{ task.id }}/?status=completed">
             <i class="ti ti-circle-check ti-xs me-1"></i>تکمیل شده
           </a>
         </li>
@@ -374,6 +371,216 @@
                   </div>
                 </div>
                 <!--/ DataTable with Buttons -->
+              </div>
+              <div class="col-lg-8">
+                <div class="card p-4">
+                  <form id="taskForm">
+                    <div class="row g-3">
+                      <!-- عنوان تسک -->
+                      <div class="col-12">
+                        <label class="form-label" for="title">عنوان تسک</label>
+                        <input
+                          name="title"
+                          class="form-control"
+                          id="title"
+                          placeholder="عنوان را وارد کنید"
+                          type="text"
+                          value="{{ task.title }}"
+                        />
+                      </div>
+
+                      <!-- سررسید -->
+                      <div class="col-md-6">
+                        <label class="form-label" for="due-date">سررسید</label>
+                        {% if user.role != "user" %}
+                          <input
+                            name="deadline"
+                            class="form-control"
+                            id="due-date"
+                            placeholder="تاریخ سررسید را وارد کنید"
+                            type="text" ,
+                            value="{{ task.deadline|jformat:"%Y/%m/%d" }}"
+                            disabled
+                          />
+                        {% else %}
+                          <input
+                            name="deadline"
+                            class="form-control"
+                            id="due-date"
+                            placeholder="تاریخ سررسید را وارد کنید"
+                            value="{{ task.deadline|jformat:"%Y/%m/%d" }}"
+                            type="text"
+                          />
+                        {% endif %}
+                      </div>
+
+                      <!-- وضعیت -->
+                      <div class="col-md-6">
+                        <label class="form-label" for="label">وضعیت</label>
+                        <select name="status" class="select2 select2-label form-select" id="label">
+                          <option data-color="bg-label-secondary" value="not_started">تازه اضافه شده</option>
+                          <option data-color="bg-label-warning" value="in_progress">در حال انجام</option>
+                          <option data-color="bg-label-info" value="reviewing">در حال بررسی</option>
+                          <option data-color="bg-label-primary" value="completed">تکمیل شده</option>
+                        </select>
+                      </div>
+
+                      <!-- درصد پیشرفت -->
+                      <div class="col-md-8">
+                        <label class="form-label" for="taskPercent">درصد پیشرفت</label>
+                        <div class="d-flex align-items-center">
+                          <input
+                            type="range"
+                            class="form-range me-3"
+                            id="taskPercent"
+                            name="percent"
+                            min="0"
+                            max="100"
+                            step="1"
+                            value="{{ task.percent }}"
+                          />
+                          <span class="fw-bold" id="taskPercentValue">40%</span>
+                        </div>
+                      </div>
+
+                      <!-- وزن تسک (۱ تا ۱۰) -->
+                      <div class="col-md-4">
+                        <label class="form-label" for="taskWeight">وزن تسک</label>
+                        <div class="input-group input-group-merge">
+                          <input
+                            type="number"
+                            class="form-control text-center"
+                            id="taskWeight"
+                            name="weight"
+                            min="1"
+                            max="10"
+                            step="1"
+                            value="{{ task.weight }}"
+                          />
+                          <span class="input-group-text">۱–۱۰</span>
+                        </div>
+                        <div class="form-text">
+                          ۱ = کم‌اهمیت، ۱۰ = خیلی مهم
+                        </div>
+                      </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="row g-3">
+                      <!-- اعضای پروژه -->
+                      <div class="col-12">
+                        <label class="form-label" for="assigneesSelect">اعضای پروژه</label>
+                        <div class="select2-success">
+                          <select
+                            class="select2 form-select"
+                            id="assigneesSelect"
+                            name="assignees"
+                            multiple
+                          >
+
+                            {% for u in project.members_projects %}
+                              <option value="{{ u.id }}">
+                                {% if u in task.assignees.all %}selected{% endif %}>
+                                {{ u.first_name }} {{ u.last_name }}
+                              </option>
+                            {% endfor %}
+
+                            <option value="user.id">{{ user.first_name }} {{ user.last_name }}</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <!-- تاریخ شروع و پایان پروژه (فقط نمایش) -->
+                      <div class="col-md-6">
+                        <div class="border rounded-2 p-3 h-100">
+                          <small class="text-muted d-block mb-1">تاریخ شروع تسک</small>
+                          <span class="fw-semibold">
+
+                          {% if task.start_date %}
+                            {{ task.start_date }}
+                          {% else %}
+                            تعیین نشده
+                          {% endif %}
+
+        </span>
+                        </div>
+                      </div>
+
+                      <div class="col-md-6">
+                        <div class="border rounded-2 p-3 h-100">
+                          <small class="text-muted d-block mb-1">تاریخ پایان تسک</small>
+                          <span class="fw-semibold">
+                          {% if task.end_date %}
+                            {{ task.end_date }}
+                          {% else %}
+                            تعیین نشده
+                          {% endif %}
+
+        </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="row g-3">
+                      <div class="col-md-4 col-sm-6">
+                        <div class="border rounded-2 p-3 h-100">
+                          <small class="text-muted d-block mb-1">ایجاد شده توسط</small>
+                          <span class="fw-semibold">
+                          {{ task.created_by.first_name }}  {{ task.created_by.last_name }}
+        </span>
+                        </div>
+                      </div>
+
+                      <div class="col-md-4 col-sm-6">
+                        <div class="border rounded-2 p-3 h-100">
+                          <small class="text-muted d-block mb-1">تاریخ ایجاد</small>
+                          <span class="fw-semibold">
+                          {{ task.created_at|jformat:"%Y/%m/%d" }}
+        </span>
+                        </div>
+                      </div>
+
+                      <div class="col-md-4 col-sm-6">
+                        <div class="border rounded-2 p-3 h-100">
+                          <small class="text-muted d-block mb-1">آخرین به‌روزرسانی</small>
+                          <span class="fw-semibold">
+          {{ task.updated_at|jformat:"%Y/%m/%d" }}
+        </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- اگر بعداً خواستی بخش کامنت را برگردانی، اینجا زیر این بخش بذار -->
+
+                    <div class="d-flex justify-content-end mt-4">
+                      <button class="btn btn-primary me-3" data-bs-dismiss="offcanvas" type="button">
+                        به‌روزرسانی
+                      </button>
+                      <button class="btn btn-label-danger" data-bs-dismiss="offcanvas" type="button">
+                        حذف
+                      </button>
+                    </div>
+                  </form>
+                  <script>
+                    (function() {
+                      const percentRange = document.getElementById('taskPercent');
+                      const percentOutput = document.getElementById('taskPercentValue');
+
+                      if (percentRange && percentOutput) {
+                        // مقدار اولیه
+                        percentOutput.textContent = percentRange.value + '%';
+
+                        // آپدیت هنگام حرکت اسلایدر
+                        percentRange.addEventListener('input', function() {
+                          percentOutput.textContent = this.value + '%';
+                        });
+                      }
+                    })();
+                  </script>
+                </div>
               </div>
             </div>
           </div>

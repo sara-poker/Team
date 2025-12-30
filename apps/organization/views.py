@@ -128,6 +128,22 @@ class TasksProjectDetail(TemplateView):
         context['qu_pa'] = qu_pa
         return context
 
+class TasksDetail(TemplateView):
+    def get_context_data(self, **kwargs):
+        context = TemplateLayout.init(self, super().get_context_data(**kwargs))
+
+        project = get_object_or_404(Project, id=self.kwargs['pk'])
+        task = get_object_or_404(Task, id=self.kwargs['task_id'])
+
+        qu_pa = self.request.GET.get('status', 'not_started')
+
+        context['class_notification'] = self.request.GET.get('alert_class', 'none_alert_mo')
+        context['message'] = self.request.GET.get('message', '')
+        context['project'] = project
+        context['qu_pa'] = qu_pa
+        context['task'] = task
+        return context
+
 
 class GetAllTaskView(APIView):
     permission_classes = [AllowAny]

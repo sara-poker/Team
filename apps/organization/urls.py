@@ -19,6 +19,11 @@ urlpatterns = [
         name="tasks_project",
     ),
     path(
+        "projects/<int:pk>/tasks/<int:task_id>/",
+        login_required(TasksDetail.as_view(template_name="tasks_detail.html")),
+        name="tasks_detail",
+    ),
+    path(
         "api/getAllTask/<int:project_id>",
         GetAllTaskView.as_view(),
         name="get_all_tast"
