@@ -214,11 +214,15 @@ class TasksDetail(TemplateView):
 
             task.save()
 
-            # آپدیت اعضا
             assignees_ids = request.POST.getlist('assignees')
             task.assignees.set(assignees_ids) if assignees_ids else task.assignees.clear()
 
-            return redirect(f"{request.path}?alert_class=success_alert_mo&message=تغییرات تسک ذخیره شد")
+            if task.status != "not_started":
+                qu_pa = f"?status={task.status}"
+            else:
+                qu_pa = ""
+
+            return redirect(f"{request.path}{qu_pa}")
 
         title = request.POST.get('title', '').strip()
         weight = request.POST.get('weight', 1)
