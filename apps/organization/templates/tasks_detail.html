@@ -112,7 +112,6 @@
   {{ block.super }}
   <script>
     $(function() {
-      // ۱. راه‌اندازی دیت‌پیکر شمسی برای فیلد سررسید
       $('#flatpickr-deadline').flatpickr({
         locale: 'fa',
         altInput: true,
@@ -120,7 +119,6 @@
         dateFormat: 'Y-m-d'
       });
 
-      // ۲. تنظیمات دیتاتیبل
       var table_element = $('#my_tasks_table');
       if (table_element.length) {
         var url1 = '/api/getAllTask/{{ project.id }}?status={{ qu_pa }}';
@@ -159,7 +157,6 @@
         });
       }
 
-      // ۳. مدیریت اسلایدر درصد پیشرفت
       const percentRange = document.getElementById('taskPercent');
       const percentOutput = document.getElementById('taskPercentValue');
       if (percentRange && percentOutput) {
@@ -168,7 +165,6 @@
         });
       }
 
-      // ۴. مدیریت وضعیت فعال تب‌ها
       var currentUrl = window.location.pathname + window.location.search;
       $('#infoTabs .nav-link').each(function() {
         if (currentUrl === $(this).attr('href')) {
