@@ -11,8 +11,6 @@ from rest_framework.views import APIView
 
 from config.utils import *
 
-
-
 from apps.organization.models import *
 from apps.organization.serializers import *
 from web_project import TemplateLayout
@@ -179,6 +177,26 @@ class TasksDetail(TemplateView):
 
     def post(self, request, *args, **kwargs):
         project = get_object_or_404(Project, id=self.kwargs['pk'])
+
+        if 'change_status' in request.POST:
+            task_id = request.POST.get('task_id')
+            task = get_object_or_404(Task, id=task_id, project=project)
+
+            new_status = request.POST.get('change_status')
+            task.status = new_status
+
+            if new_status == "in_progress":
+                task.start_date = timezone.now().date()
+            elif new_status == "reviewing":
+                task.end_date = timezone.now().date()
+
+            task.save()
+
+            if task.status != "not_started":
+                qu_pa = f"?status={task.status}"
+            else:
+                qu_pa = ""
+            return redirect(f"{request.path}{qu_pa}")
 
         if 'delete_task' in request.POST:
             task_id = request.POST.get('task_id')
