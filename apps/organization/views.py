@@ -193,6 +193,7 @@ class TasksDetail(TemplateView):
 
             task.title = request.POST.get('title').strip()
             task.status = request.POST.get('status')
+            task.description = request.POST.get('description')
             task.percent = float(request.POST.get('percent', 0))
             task.weight = int(request.POST.get('weight', 1))
 
