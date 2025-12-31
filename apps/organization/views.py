@@ -198,7 +198,7 @@ class TasksDetail(TemplateView):
                 qu_pa = ""
             return redirect(f"{request.path}{qu_pa}")
 
-        if 'delete_task' in request.POST:
+        if 'delete_task' in request.POST and request.user.role != "user":
             task_id = request.POST.get('task_id')
             task = get_object_or_404(Task, id=task_id, project=project)
             task.delete()
@@ -209,7 +209,6 @@ class TasksDetail(TemplateView):
             task_id = request.POST.get('task_id')
             task = get_object_or_404(Task, id=task_id, project=project)
 
-            task.title = request.POST.get('title').strip()
             task.status = request.POST.get('status')
             task.description = request.POST.get('description')
             task.percent = float(request.POST.get('percent', 0))

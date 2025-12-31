@@ -3,7 +3,7 @@
 {% load i18n %}
 {% load jformat %}
 
-{% block title %}اپراتور ها{% endblock %}
+{% block title %}اطلاعات {{ task.title }}{% endblock %}
 
 {% block vendor_css %}
   {{ block.super }}
@@ -291,13 +291,15 @@
                   {% if request.user.role == "user" %}
                     <div class="col-12">
                       <label class="form-label" for="title">عنوان تسک</label>
-                      <input name="title" class="form-control" id="title" type="text" value="{{ task.title }}" />
+                      <input disabled name="title" class="form-control" id="title" type="text"
+                             value="{{ task.title }} " />
                       <input type="hidden" name="task_id" value="{{ task.id }}">
                     </div>
                   {% else %}
                     <div class="col-8">
                       <label class="form-label" for="title">عنوان تسک</label>
-                      <input name="title" class="form-control" id="title" type="text" value="{{ task.title }}" />
+                      <input disabled name="title" class="form-control" id="title" type="text"
+                             value="{{ task.title }}" />
                       <input type="hidden" name="task_id" value="{{ task.id }}">
                     </div>
                     <div class="col-md-4">
@@ -446,9 +448,11 @@
 
                   <button class="btn btn-primary me-2" type="submit" name="update_task">به‌روزرسانی</button>
 
-                  <button class="btn btn-label-danger" type="submit" name="delete_task"
-                          onclick="return confirm('حذف شود؟')">حذف
-                  </button>
+                  {% if request.user.role != "user" %}
+                    <button class="btn btn-label-danger" type="submit" name="delete_task"
+                            onclick="return confirm('حذف شود؟')">حذف
+                    </button>
+                  {% endif %}
                 </div>
               </form>
 
