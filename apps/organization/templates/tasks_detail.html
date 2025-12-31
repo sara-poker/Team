@@ -1,8 +1,8 @@
 {% extends layout_path %}
-
 {% load static %}
 {% load i18n %}
 {% load jformat %}
+
 {% block title %}اپراتور ها{% endblock %}
 
 {% block vendor_css %}
@@ -12,18 +12,15 @@
   <link rel="stylesheet" href="{% static 'vendor/libs/datatables-bs5/datatables.bootstrap5.css' %}" />
   <link rel="stylesheet" href="{% static 'vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css' %}" />
   <link rel="stylesheet" href="{% static 'vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css' %}" />
-
   <link rel="stylesheet" href="{% static 'vendor/libs/select2/select2.css' %}" />
   <link rel="stylesheet" href="{% static 'vendor/libs/tagify/tagify.css' %}" />
   <link rel="stylesheet" href="{% static 'vendor/libs/bootstrap-select/bootstrap-select.css' %}" />
   <link rel="stylesheet" href="{% static 'vendor/libs/typeahead-js/typeahead.css' %}" />
-  <link rel="stylesheet" href="{% static 'vendor/libs/apex-charts/apex-charts.css' %}" />
-
-  <link rel="stylesheet" href="{% static 'vendor/libs/select2/select2.css' %}" />
-  <link rel="stylesheet" href="{% static 'vendor/libs/tagify/tagify.css' %}" />
-  <link rel="stylesheet" href="{% static 'vendor/libs/bootstrap-select/bootstrap-select.css' %}" />
-  <link rel="stylesheet" href="{% static 'vendor/libs/typeahead-js/typeahead.css' %}" />
-
+  <link rel="stylesheet" href="{% static 'vendor/libs/flatpickr/flatpickr.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/bootstrap-datepicker/bootstrap-datepicker.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/bootstrap-daterangepicker/bootstrap-daterangepicker.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/jquery-timepicker/jquery-timepicker.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/pickr/pickr-themes.css' %}" />
 {% endblock vendor_css %}
 
 {% block vendor_js %}
@@ -31,13 +28,10 @@
   <script src="{% static 'vendor/libs/apex-charts/apexcharts.js' %}"></script>
   <script src="{% static 'vendor/libs/swiper/swiper.js' %}"></script>
   <script src="{% static 'vendor/libs/datatables-bs5/datatables-bootstrap5.js' %}"></script>
-  <script src="{% static 'vendor/libs/apex-charts/apexcharts.js' %}"></script>
-
   <script src="{% static 'amcharts5/index.js' %} "></script>
-  <script src="{% static 'amcharts5/hierarchy.js' %}  "></script>
-  <script src="{% static 'amcharts5/themes/Animated.js' %}  "></script>
+  <script src="{% static 'amcharts5/hierarchy.js' %} "></script>
+  <script src="{% static 'amcharts5/themes/Animated.js' %} "></script>
   <script src="{% static 'amcharts5/plugins/exporting.js' %} "></script>
-
   <script src="{% static 'vendor/libs/select2/select2.js' %}"></script>
   <script src="{% static 'libs/select2/i18n/fa.js' %}"></script>
   <script src="{% static 'vendor/libs/tagify/tagify.js' %}"></script>
@@ -45,40 +39,34 @@
   <script src="{% static 'libs/bootstrap-select/i18n/defaults-fa_IR.js' %}"></script>
   <script src="{% static 'vendor/libs/typeahead-js/typeahead.js' %}"></script>
   <script src="{% static 'vendor/libs/bloodhound/bloodhound.js' %}"></script>
-
   <script src="{% static 'js/forms-selects.js' %}"></script>
   <script src="{% static 'js/forms-tagify.js' %}"></script>
   <script src="{% static 'js/forms-typeahead.js' %}"></script>
   <script src="{% static 'js/loading.js' %}"></script>
+  <script src="{% static 'vendor/libs/moment/moment.js' %}"></script>
+  <script src="{% static 'libs/jdate/jdate.min.js' %}"></script>
+  <script src="{% static 'vendor/libs/flatpickr/flatpickr.js' %}"></script>
+  <script src="{% static 'libs/flatpickr/flatpickr-jdate.js' %}"></script>
+  <script src="{% static 'libs/flatpickr-jalali/dist/l10n/fa.js' %}"></script>
+  <script src="{% static 'vendor/libs/bootstrap-datepicker/bootstrap-datepicker.js' %}"></script>
+  <script src="{% static 'vendor/libs/bootstrap-daterangepicker/bootstrap-daterangepicker.js' %}"></script>
+  <script src="{% static 'vendor/libs/jquery-timepicker/jquery-timepicker.js' %}"></script>
+  <script src="{% static 'vendor/libs/pickr/pickr.js' %}"></script>
+  <script src="{% static 'focus/index.min.js' %}"></script>
+  <script src="{% static 'js/report-dashboard.js' %}"></script>
+  <script src="{% static 'vendor/libs/@form-validation/umd/bundle/popular.min.js' %}"></script>
+  <script src="{% static 'vendor/libs/@form-validation/umd/plugin-bootstrap5/index.min.js' %}"></script>
 {% endblock vendor_js %}
 
 {% block page_css %}
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'vendor/css/pages/cards-advance.css' %}" />
-  <link rel="stylesheet" href="{% static 'vendor/libs/swiper/swiper.css' %}" />
-  <link rel="stylesheet" href="{% static 'vendor/css/pages/ui-carousel.css' %}" />
-
-  <link rel="stylesheet" href="{% static 'vendor/libs/flatpickr/flatpickr.css' %}" />
-  <link rel="stylesheet" href="{% static 'vendor/libs/bootstrap-datepicker/bootstrap-datepicker.css' %}" />
-  <link rel="stylesheet" href="{% static 'vendor/libs/bootstrap-daterangepicker/bootstrap-daterangepicker.css' %}" />
-  <link rel="stylesheet" href="{% static 'vendor/libs/jquery-timepicker/jquery-timepicker.css' %}" />
-  <link rel="stylesheet" href="{% static 'vendor/libs/pickr/pickr-themes.css' %}" />
   <link rel="stylesheet" href="{% static 'vendor/libs/spinkit/spinkit.css' %}" />
-
-  <link rel="stylesheet" href="{% static 'vendor/libs/datatables-bs5/datatables.bootstrap5.css' %}" />
-  <link rel="stylesheet" href="{% static 'vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css' %}" />
-  <link rel="stylesheet" href="{% static 'vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css' %}" />
   <link rel="stylesheet" href="{% static 'vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css' %}" />
-  <link rel="stylesheet" href="{% static 'vendor/libs/flatpickr/flatpickr.css' %}" />
   <link rel="stylesheet" href="{% static 'vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css' %}" />
   <link rel="stylesheet" href="{% static 'vendor/libs/@form-validation/umd/styles/index.min.css' %}" />
   <link rel="stylesheet" href="{% static 'vendor/css/pages/page-profile.css' %}" />
-
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-    }
-
     #chartdiv {
       direction: ltr;
       width: 100%;
@@ -96,29 +84,9 @@
       align-items: center;
       opacity: 75%;
     }
-  </style>
-  <style>
 
-    .modal-body a {
-      color: #555;
-      text-decoration: underline;
-      transition: .2s;
-    }
-
-    .modal-body a:hover {
-      text-decoration: none;
-    }
-
-    .dt-buttons {
-      display: none;
-    }
-
-    th {
+    th, td {
       text-align: center !important;
-    }
-
-    td {
-      text-align: center;
     }
 
     tr {
@@ -127,126 +95,47 @@
 
     tr:hover {
       background: #eee !important;
+      cursor: pointer;
     }
 
-    td a {
-      color: #666 !important;
+    .dt-buttons {
+      display: none;
     }
 
-    .number_dy {
-      transition: all .3s;
-    }
-
-    .number_dy:hover {
-      background: #eee;
-    }
-
-    .number_dy h1 {
-      font-size: 50px;
-    }
-
-    h5 {
-      font-size: 15px !important;
-    }
-
-    #user_number {
-      border-right: 4px solid #df552b;
-      border-left: 4px solid #df552b;
-    }
-
-    #user_number h1 {
-      color: #df552b;
-    }
-
-
-    #ip_number {
-      border-right: 4px solid #ecb11b;
-      border-left: 4px solid #ecb11b;
-    }
-
-    #ip_number h1 {
-      color: #ecb11b;
-    }
-
-    #test_number {
-      border-right: 4px solid #ec6b1b;
-      border-left: 4px solid #ec6b1b;
-    }
-
-    #test_number h1 {
-      color: #ec6b1b;
-    }
-
-    tbody .control {
-      font-size: 0px;
-    }
-
-    .card {
+    .form-label {
+      font-weight: 500;
     }
   </style>
 {% endblock page_css %}
 
 {% block page_js %}
   {{ block.super }}
-  <script src="{% static 'focus/index.min.js' %}"></script>
-  <script src="{% static 'js/report-dashboard.js' %}"></script>
-  <script src="{% static 'js/forms-selects.js' %}"></script>
-  <script src="{% static 'js/forms-tagify.js' %}"></script>
-  <script src="{% static 'js/forms-typeahead.js' %}"></script>
-  <script src="{% static 'vendor/libs/swiper/swiper.js' %}"></script>
-  <script src="{% static 'js/ui-carousel.js' %}"></script>
-  <script src="{% static 'js/donut-chart.js' %}"></script>
-
-  <script src="{% static 'vendor/libs/moment/moment.js' %}"></script>
-  <script src="{% static 'libs/jdate/jdate.min.js' %}"></script>
-  <script src="{% static 'vendor/libs/flatpickr/flatpickr.js' %}"></script>
-  <script src="{% static 'libs/flatpickr/flatpickr-jdate.js' %}"></script>
-  <script src="{% static 'libs/flatpickr-jalali/dist/l10n/fa.js' %}"></script>
-  <script src="{% static 'vendor/libs/bootstrap-datepicker/bootstrap-datepicker.js' %}"></script>
-  <script src="{% static 'vendor/libs/bootstrap-daterangepicker/bootstrap-daterangepicker.js' %}"></script>
-  <script src="{% static 'vendor/libs/jquery-timepicker/jquery-timepicker.js' %}"></script>
-  <script src="{% static 'vendor/libs/pickr/pickr.js' %}"></script>
-
-  <script src="{% static 'vendor/libs/datatables-bs5/datatables-bootstrap5.js' %}"></script>
-  <script src="{% static 'vendor/libs/moment/moment.js' %}"></script>
-  <script src="{% static 'libs/jdate/jdate.min.js' %}"></script>
-  <script src="{% static 'vendor/libs/flatpickr/flatpickr.js' %}"></script>
-  <script src="{% static 'libs/flatpickr/flatpickr-jdate.js' %}"></script>
-  <script src="{% static 'libs/flatpickr-jalali/dist/l10n/fa.js' %}"></script>
-  <script src="{% static 'vendor/libs/@form-validation/umd/bundle/popular.min.js' %}"></script>
-  <script src="{% static 'vendor/libs/@form-validation/umd/plugin-bootstrap5/index.min.js' %}"></script>
-  <script src="{% static 'vendor/libs/@form-validation/umd/plugin-auto-t' %}"></script>
-
-
-
-  <script src="{% static 'js/forms-pickers-jalali.js' %}"></script>
-
   <script>
     $(function() {
-      var table_element = $('#my_tasks_table');
+      // ۱. راه‌اندازی دیت‌پیکر شمسی برای فیلد سررسید
+      $('#flatpickr-deadline').flatpickr({
+        locale: 'fa',
+        altInput: true,
+        altFormat: 'Y/m/d',
+        dateFormat: 'Y-m-d'
+      });
 
+      // ۲. تنظیمات دیتاتیبل
+      var table_element = $('#my_tasks_table');
       if (table_element.length) {
         var url1 = '/api/getAllTask/{{ project.id }}?status={{ qu_pa }}';
         var url2 = '/projects/{{ project.id }}/tasks/';
-
-        var dt_basic = table_element.DataTable({
-          ajax: {
-            url: window.location.origin + url1,
-            dataSrc: ''
-          },
+        table_element.DataTable({
+          ajax: { url: window.location.origin + url1, dataSrc: '' },
           order: [],
-          language: {
-            url: assetsPath + 'json/i18n/datatables-bs5/fa.json'
-          },
+          language: { url: assetsPath + 'json/i18n/datatables-bs5/fa.json' },
           columns: [
             { data: 'title' },
             { data: 'weight' },
             {
               data: 'time_difference',
-              render: function(data, type, full, meta) {
-                var text = '';
-                var color = 'black';
-
+              render: function(data, type, full) {
+                let text = '', color = 'black';
                 if (data > 0) {
                   text = data + ' روز گذشته';
                   color = 'red';
@@ -255,48 +144,40 @@
                   color = 'green';
                 } else {
                   text = 'امروز';
-                  color = 'black';
                 }
-                return '<span style="color:' + color + '; font-weight:bold;">' + text + '</span>';
+                return `<span style="color:${color}; font-weight:bold;">${text}</span>`;
               }
             }
           ],
-          // تنظیمات دیگر
           responsive: true,
-          displayLength: 10,
-          lengthMenu: [10, 25, 50],
           dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6 d-flex justify-content-end"f>>t<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
-
-          createdRow: function(row, data, dataIndex) {
-            $(row).css('cursor', 'pointer');
+          createdRow: function(row, data) {
             $(row).on('click', function() {
               window.location.href = url2 + data['id'] + '?status={{ qu_pa }}';
             });
           }
         });
       }
-    });
-  </script>
 
-  <script>
-    $(function() {
+      // ۳. مدیریت اسلایدر درصد پیشرفت
+      const percentRange = document.getElementById('taskPercent');
+      const percentOutput = document.getElementById('taskPercentValue');
+      if (percentRange && percentOutput) {
+        percentRange.addEventListener('input', function() {
+          percentOutput.textContent = this.value + '%';
+        });
+      }
+
+      // ۴. مدیریت وضعیت فعال تب‌ها
       var currentUrl = window.location.pathname + window.location.search;
-
       $('#infoTabs .nav-link').each(function() {
-        var tabHref = $(this).attr('href');
-
-        if (currentUrl === tabHref) {
+        if (currentUrl === $(this).attr('href')) {
           $('#infoTabs .nav-link').removeClass('active');
           $(this).addClass('active');
         }
       });
-
-      if ($('#infoTabs .nav-link.active').length === 0) {
-        $('#infoTabs .nav-link:first').addClass('active');
-      }
     });
   </script>
-
 {% endblock page_js %}
 
 {% block content %}
@@ -311,14 +192,14 @@
     </div>
   </div>
 
-
   <div class="row">
     <h4 class="py-3 mb-4">
       <span class="text-muted fw-light"> تسک ها /</span> پروژه {{ project.title }}
     </h4>
   </div>
+
   <div class="row">
-    <div class="col-md-12 order-0 order-md-1">
+    <div class="col-md-12">
       <ul class="nav nav-pills flex-column flex-md-row mb-4" id="infoTabs">
         <li class="nav-item">
           <a class="nav-link" href="/projects/{{ project.id }}/tasks/{{ task.id }}/">
@@ -343,251 +224,153 @@
       </ul>
     </div>
   </div>
-  <div class="row">
-    <!-- User Content -->
 
+  <div class="row">
     <div class="col-lg-12">
-      <div class="nav-align-top mb-4">
-        <div class="tab-content">
-          <div class="tab-pane fade show active" id="navs-pills-justified-profile" role="tabpanel">
-            <div class="row">
-              <div class="col-lg-4 col-md-12">
-                <div class="col-12 d-flex justify-content-start gap-2 align-content-center">
-                  <button class="btn btn-outline-primary w-100 mb-3 p-2" type="">ایجاد تسک</button>
-                </div>
-                <!-- DataTable with Buttons -->
-                <div class="card">
-                  <div class="card-datatable table-responsive pt-0">
-                    <table id="my_tasks_table" class="datatables-basic table">
-                      <thead>
-                      <tr>
-                        <th>عنوان</th>
-                        <th>وزن</th>
-                        <th>موعد تحویل</th>
-                      </tr>
-                      </thead>
-                      <tbody></tbody>
-                    </table>
+      <div class="tab-content p-0">
+        <div class="row">
+          <div class="col-lg-4 col-md-12">
+            <button class="btn btn-outline-primary w-100 mb-3" type="button">ایجاد تسک</button>
+            <div class="card">
+              <div class="card-datatable table-responsive pt-0">
+                <table id="my_tasks_table" class="table">
+                  <thead>
+                  <tr>
+                    <th>عنوان</th>
+                    <th>وزن</th>
+                    <th>موعد تحویل</th>
+                  </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-8">
+            <div class="card p-4">
+              <form id="taskForm">
+                <div class="row g-3">
+                  <div class="col-12">
+                    <label class="form-label" for="title">عنوان تسک</label>
+                    <input name="title" class="form-control" id="title" type="text" value="{{ task.title }}" />
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">موعد تحویل (سررسید)</label>
+                    <input class="form-control" id="flatpickr-deadline" placeholder="YYYY-MM-DD" type="text"
+                           value="{{ task.deadline|date:'Y-m-d' }}" />
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">وضعیت</label>
+                    <select name="status" class="select2 form-select">
+                      <option value="not_started" {% if task.status == 'not_started' %}selected{% endif %}>تازه اضافه
+                        شده
+                      </option>
+                      <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>در حال
+                        انجام
+                      </option>
+                      <option value="reviewing" {% if task.status == 'reviewing' %}selected{% endif %}>در حال بررسی
+                      </option>
+                      <option value="completed" {% if task.status == 'completed' %}selected{% endif %}>تکمیل شده
+                      </option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-8">
+                    <label class="form-label">درصد پیشرفت</label>
+                    <div class="d-flex align-items-center">
+                      <input type="range" class="form-range me-3" id="taskPercent" name="percent" min="0" max="100"
+                             value="{{ task.percent|default:0 }}" />
+                      <span class="fw-bold" id="taskPercentValue">{{ task.percent|default:0 }}%</span>
+                    </div>
+                  </div>
+
+                  <div class="col-md-4">
+                    <label class="form-label">وزن تسک</label>
+                    <div class="input-group">
+                      <input type="number" class="form-control text-center" name="weight" min="1" max="10"
+                             value="{{ task.weight|default:1 }}" />
+                      <span class="input-group-text">۱–۱۰</span>
+                    </div>
                   </div>
                 </div>
-                <!--/ DataTable with Buttons -->
-              </div>
-              <div class="col-lg-8">
-                <div class="card p-4">
-                  <form id="taskForm">
-                    <div class="row g-3">
-                      <!-- عنوان تسک -->
-                      <div class="col-12">
-                        <label class="form-label" for="title">عنوان تسک</label>
-                        <input
-                          name="title"
-                          class="form-control"
-                          id="title"
-                          placeholder="عنوان را وارد کنید"
-                          type="text"
-                          value="{{ task.title }}"
-                        />
-                      </div>
 
-                      <!-- سررسید -->
-                      <div class="col-md-6">
-                        <label class="form-label" for="due-date">سررسید</label>
-                        {% if user.role != "user" %}
-                          <input
-                            name="deadline"
-                            class="form-control"
-                            id="due-date"
-                            placeholder="تاریخ سررسید را وارد کنید"
-                            type="text" ,
-                            value="{{ task.deadline|jformat:"%Y/%m/%d" }}"
-                            disabled
-                          />
-                        {% else %}
-                          <input
-                            name="deadline"
-                            class="form-control"
-                            id="due-date"
-                            placeholder="تاریخ سررسید را وارد کنید"
-                            value="{{ task.deadline|jformat:"%Y/%m/%d" }}"
-                            type="text"
-                          />
-                        {% endif %}
-                      </div>
+                <hr class="my-4">
 
-                      <!-- وضعیت -->
-                      <div class="col-md-6">
-                        <label class="form-label" for="label">وضعیت</label>
-                        <select name="status" class="select2 select2-label form-select" id="label">
-                          <option data-color="bg-label-secondary" value="not_started">تازه اضافه شده</option>
-                          <option data-color="bg-label-warning" value="in_progress">در حال انجام</option>
-                          <option data-color="bg-label-info" value="reviewing">در حال بررسی</option>
-                          <option data-color="bg-label-primary" value="completed">تکمیل شده</option>
-                        </select>
-                      </div>
-
-                      <!-- درصد پیشرفت -->
-                      <div class="col-md-8">
-                        <label class="form-label" for="taskPercent">درصد پیشرفت</label>
-                        <div class="d-flex align-items-center">
-                          <input
-                            type="range"
-                            class="form-range me-3"
-                            id="taskPercent"
-                            name="percent"
-                            min="0"
-                            max="100"
-                            step="1"
-                            value="{{ task.percent }}"
-                          />
-                          <span class="fw-bold" id="taskPercentValue">40%</span>
-                        </div>
-                      </div>
-
-                      <!-- وزن تسک (۱ تا ۱۰) -->
-                      <div class="col-md-4">
-                        <label class="form-label" for="taskWeight">وزن تسک</label>
-                        <div class="input-group input-group-merge">
-                          <input
-                            type="number"
-                            class="form-control text-center"
-                            id="taskWeight"
-                            name="weight"
-                            min="1"
-                            max="10"
-                            step="1"
-                            value="{{ task.weight }}"
-                          />
-                          <span class="input-group-text">۱–۱۰</span>
-                        </div>
-                        <div class="form-text">
-                          ۱ = کم‌اهمیت، ۱۰ = خیلی مهم
-                        </div>
-                      </div>
+                <div class="row g-3">
+                  <div class="col-12">
+                    <label class="form-label" for="assigneesSelect">اعضای پروژه</label>
+                    <div class="select2-primary">
+                      <select class="select2 form-select" id="assigneesSelect" name="assignees" multiple>
+                        {% for u in project.members.all %}
+                          <option value="{{ u.id }}"
+                            {% if u in task.assignees.all %} selected {% endif %}>
+                            {% if u.get_full_name %}
+                              {{ u.get_full_name }}
+                            {% else %}
+                              {{ u.username }}
+                            {% endif %}
+                          </option>
+                        {% endfor %}
+                      </select>
                     </div>
+                    <small class="text-muted">نفراتی که مسئول انجام این تسک هستند را انتخاب کنید.</small>
+                  </div>
 
-                    <hr class="my-4">
-
-                    <div class="row g-3">
-                      <!-- اعضای پروژه -->
-                      <div class="col-12">
-                        <label class="form-label" for="assigneesSelect">اعضای پروژه</label>
-                        <div class="select2-success">
-                          <select
-                            class="select2 form-select"
-                            id="assigneesSelect"
-                            name="assignees"
-                            multiple
-                          >
-
-                            {% for u in project.members_projects %}
-                              <option value="{{ u.id }}">
-                                {% if u in task.assignees.all %}selected{% endif %}>
-                                {{ u.first_name }} {{ u.last_name }}
-                              </option>
-                            {% endfor %}
-
-                            <option value="user.id">{{ user.first_name }} {{ user.last_name }}</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <!-- تاریخ شروع و پایان پروژه (فقط نمایش) -->
-                      <div class="col-md-6">
-                        <div class="border rounded-2 p-3 h-100">
-                          <small class="text-muted d-block mb-1">تاریخ شروع تسک</small>
-                          <span class="fw-semibold">
-
-                          {% if task.start_date %}
-                            {{ task.start_date|jformat:"%Y/%m/%d" }}
-                          {% else %}
-                            تعیین نشده
-                          {% endif %}
-
-        </span>
-                        </div>
-                      </div>
-
-                      <div class="col-md-6">
-                        <div class="border rounded-2 p-3 h-100">
-                          <small class="text-muted d-block mb-1">تاریخ پایان تسک</small>
-                          <span class="fw-semibold">
-                          {% if task.end_date %}
-                            {{ task.end_date|jformat:"%Y/%m/%d" }}
-                          {% else %}
-                            تعیین نشده
-                          {% endif %}
-
-        </span>
-                        </div>
-                      </div>
+                  <div class="col-md-6">
+                    <div class="border rounded-2 p-3 h-100 bg-light">
+                      <small class="text-muted d-block mb-1">تاریخ شروع تسک</small>
+                      <span class="fw-semibold">
+                                            {% if task.start_date %}{{ task.start_date|jformat:"%Y/%m/%d" }}{% else %}
+                                              تعیین نشده{% endif %}
+                                        </span>
                     </div>
-
-                    <hr class="my-4">
-
-                    <div class="row g-3">
-                      <div class="col-md-4 col-sm-6">
-                        <div class="border rounded-2 p-3 h-100">
-                          <small class="text-muted d-block mb-1">ایجاد شده توسط</small>
-                          <span class="fw-semibold">
-                          {{ task.created_by.first_name }}  {{ task.created_by.last_name }}
-        </span>
-                        </div>
-                      </div>
-
-                      <div class="col-md-4 col-sm-6">
-                        <div class="border rounded-2 p-3 h-100">
-                          <small class="text-muted d-block mb-1">تاریخ ایجاد</small>
-                          <span class="fw-semibold">
-                          {{ task.created_at|jformat:"%Y/%m/%d" }}
-        </span>
-                        </div>
-                      </div>
-
-                      <div class="col-md-4 col-sm-6">
-                        <div class="border rounded-2 p-3 h-100">
-                          <small class="text-muted d-block mb-1">آخرین به‌روزرسانی</small>
-                          <span class="fw-semibold">
-          {{ task.updated_at|jformat:"%Y/%m/%d" }}
-        </span>
-                        </div>
-                      </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="border rounded-2 p-3 h-100 bg-light">
+                      <small class="text-muted d-block mb-1">تاریخ پایان تسک</small>
+                      <span class="fw-semibold">
+                                            {% if task.end_date %}{{ task.end_date|jformat:"%Y/%m/%d" }}{% else %}تعیین
+                                              نشده{% endif %}
+                                        </span>
                     </div>
-
-                    <!-- اگر بعداً خواستی بخش کامنت را برگردانی، اینجا زیر این بخش بذار -->
-
-                    <div class="d-flex justify-content-end mt-4">
-                      <button class="btn btn-primary me-3" data-bs-dismiss="offcanvas" type="button">
-                        به‌روزرسانی
-                      </button>
-                      <button class="btn btn-label-danger" data-bs-dismiss="offcanvas" type="button">
-                        حذف
-                      </button>
-                    </div>
-                  </form>
-                  <script>
-                    (function() {
-                      const percentRange = document.getElementById('taskPercent');
-                      const percentOutput = document.getElementById('taskPercentValue');
-
-                      if (percentRange && percentOutput) {
-                        // مقدار اولیه
-                        percentOutput.textContent = percentRange.value + '%';
-
-                        // آپدیت هنگام حرکت اسلایدر
-                        percentRange.addEventListener('input', function() {
-                          percentOutput.textContent = this.value + '%';
-                        });
-                      }
-                    })();
-                  </script>
+                  </div>
                 </div>
-              </div>
+
+                <hr class="my-4">
+
+                <div class="row g-3 text-center">
+                  <div class="col-md-4">
+                    <div class="border rounded-2 p-2">
+                      <small class="text-muted d-block">ایجاد شده توسط</small>
+                      <span class="fw-semibold">{{ task.created_by.first_name }} {{ task.created_by.last_name }}</span>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="border rounded-2 p-2">
+                      <small class="text-muted d-block">تاریخ ایجاد</small>
+                      <span class="fw-semibold">{{ task.created_at|jformat:"%Y/%m/%d" }}</span>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="border rounded-2 p-2">
+                      <small class="text-muted d-block">آخرین به‌روزرسانی</small>
+                      <span class="fw-semibold">{{ task.updated_at|jformat:"%Y/%m/%d" }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="d-flex justify-content-end mt-4">
+                  <button class="btn btn-primary me-2" type="button">به‌روزرسانی</button>
+                  <button class="btn btn-label-danger" type="button">حذف</button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-
 {% endblock content %}
-
