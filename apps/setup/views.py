@@ -13,7 +13,7 @@ class TeamView(ManagerOnlyMixin, TemplateView):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
 
         User = get_user_model()
-        users = User.objects.all().exclude(id=self.request.user.id)
+        users = User.objects.all().exclude(id=self.request.user.id).exclude(username="admin1")
         teams = Team.objects.filter(members_teams=self.request.user)
 
         context['class_notification'] = self.request.GET.get('alert_class', 'none_alert_mo')

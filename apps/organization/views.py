@@ -2,11 +2,16 @@ from django.views.generic import (TemplateView)
 from django.contrib.auth import get_user_model
 from django.db.models import ProtectedError
 from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
+
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
 from config.utils import *
+
+
 
 from apps.organization.models import *
 from apps.organization.serializers import *
@@ -35,12 +40,12 @@ class ProjectsView(StaffRequiredMixin, TemplateView):
         teams = Team.objects.filter(members_teams=user).distinct()
 
         if user.role == 'manager':
-            users = User.objects.all().exclude(id=self.request.user.id)
+            users = User.objects.all().exclude(id=self.request.user.id).exclude(username="admin1")
 
         elif user.role == 'admin':
             users = User.objects.filter(
                 teams__in=teams
-            ).exclude(id=self.request.user.id).distinct()
+            ).exclude(id=self.request.user.id).exclude(username="admin1").distinct()
 
         else:
             users = User.objects.filter(id=user.id)
@@ -117,16 +122,12 @@ class ProjectDetail(TemplateView):
         return context
 
 
-from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse
-from .models import Project, Task
-
-
 class TasksProjectDetail(TemplateView):
     def get_context_data(self, **kwargs):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
         project = get_object_or_404(Project, id=self.kwargs['pk'])
         qu_pa = self.request.GET.get('status', 'not_started')
+
         context['class_notification'] = self.request.GET.get('alert_class', 'none_alert_mo')
         context['message'] = self.request.GET.get('message', '')
         context['project'] = project
