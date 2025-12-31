@@ -92,7 +92,7 @@
               <img class="rounded-circle" alt="{{ user.name }}" src="{% static 'img/avatars/' %}{{ user.username }}.png"
                    width="52">
             </td>
-            <td>{{ user.name }}</td>
+            <td>{{ user.first_name }} {{ user.last_name }}</td>
             <td>
               {{ user.username }}
             </td>
@@ -100,9 +100,9 @@
               {% if user.role == "manager" %}
                 <span class="badge bg-label-dark">مدیر کل</span>
               {% elif user.role == "admin" %}
-                <span class="badge bg-label-dark">ادمین</span>
+                <span class="badge bg-label-dark">سرپرست تیم</span>
               {% elif user.role == "user" %}
-                <span class="badge bg-label-dark">کاربر عادی</span>
+                <span class="badge bg-label-dark">کارشناس</span>
               {% endif %}
             </td>
             <td>

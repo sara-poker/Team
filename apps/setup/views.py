@@ -101,7 +101,7 @@ class UsersTableView(StaffRequiredMixin, TemplateView):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
 
         User = get_user_model()
-        users = User.objects.exclude(id=self.request.user.id)
+        users = User.objects.exclude(id=self.request.user.id, username='admin1')
 
         context['users'] = users
         return context
