@@ -121,7 +121,7 @@
 
       var table_element = $('#my_tasks_table');
       if (table_element.length) {
-        var url1 = '/api/getAllTask/{{ project.id }}/?status={{ qu_pa }}';
+        var url1 = '/api/getAllTask/{{ project.id }}?status={{ qu_pa }}';
         var url2 = '/projects/{{ project.id }}/tasks/';
         table_element.DataTable({
           ajax: { url: window.location.origin + url1, dataSrc: '' },
@@ -151,7 +151,7 @@
           dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6 d-flex justify-content-end"f>>t<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
           createdRow: function(row, data) {
             $(row).on('click', function() {
-              window.location.href = url2 + data['id'] + '?status={{ qu_pa }}';
+              window.location.href = url2 + data['id'] + '/?status={{ qu_pa }}';
             });
           }
         });
