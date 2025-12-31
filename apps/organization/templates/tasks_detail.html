@@ -296,9 +296,9 @@
 
                   <div class="col-md-6">
                     <label class="form-label">موعد تحویل (سررسید)</label>
-                    <input name="deadline" class="form-control" id="flatpickr-deadline" placeholder="YYYY-MM-DD"
+                    <input name="deadline" class="form-control" id="flatpickr-deadline" placeholder="{{ task.deadline|jformat:"%Y-%m-%d" }}"
                            type="text"
-                           value="{{ task.deadline|date:'Y-m-d' }}" />
+                           value="{{ task.deadline|jformat:"%Y-%m-%d" }}" />
                   </div>
 
                   <div class="col-md-6">

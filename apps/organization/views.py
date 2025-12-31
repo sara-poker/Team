@@ -12,6 +12,9 @@ from apps.organization.models import *
 from apps.organization.serializers import *
 from web_project import TemplateLayout
 
+import jdatetime
+from datetime import datetime
+
 
 class ProjectsView(StaffRequiredMixin, TemplateView):
     from django.contrib.auth import get_user_model
@@ -183,7 +186,6 @@ class TasksDetail(TemplateView):
             success_delete_url = reverse('tasks_project', kwargs={'pk': project.id})
             return redirect(f"{success_delete_url}")
 
-
         if 'update_task' in request.POST:
             task_id = request.POST.get('task_id')
             task = get_object_or_404(Task, id=task_id, project=project)
@@ -193,9 +195,22 @@ class TasksDetail(TemplateView):
             task.percent = float(request.POST.get('percent', 0))
             task.weight = int(request.POST.get('weight', 1))
 
-            deadline = request.POST.get('deadline')
-            if deadline:
-                task.deadline = deadline
+            deadline_shamsi = request.POST.get('deadline')
+
+            if deadline_shamsi:
+                try:
+                    date_parts = deadline_shamsi.replace('/', '-').split('-')
+                    year = int(date_parts[0])
+                    month = int(date_parts[1])
+                    day = int(date_parts[2])
+
+                    jalali_date = jdatetime.date(year, month, day)
+
+                    deadline = jalali_date.togregorian()
+
+                    task.deadline = deadline
+                except (ValueError, IndexError):
+                    pass
 
             task.save()
 
