@@ -201,34 +201,34 @@
 
       <!-- Modal -->
       <div class="modal modal-top fade" id="modalTop" tabindex="-1">
-        <div class="modal-dialog">
-          <form class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="modalTopTitle">ایجاد تسک</h5>
-              <button aria-label="بستن" class="btn-close" data-bs-dismiss="modal" type="button"></button>
-            </div>
-            <div class="modal-body">
-              <div class="row">
-                <div class="col-md-8 mb-3">
-                  <label class="form-label" for="nameSlideTop">عنوان:</label>
-                  <input class="form-control" id="nameSlideTop" placeholder="عنوان را وارد کنید" type="text" />
-                </div>
-                <div class="col-md-4">
-                  <label class="form-label">وزن تسک</label>
-                  <div class="input-group">
-                    <input type="number" class="form-control text-center" name="weight" min="1" max="10"/>
-                    <span class="input-group-text">۱–۱۰</span>
-                  </div>
-                </div>
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <form method="POST">
+          {% csrf_token %}
+          <div class="modal-header">
+            <h5 class="modal-title">ایجاد تسک جدید برای {{ project.title }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-8 mb-3">
+                <label class="form-label">عنوان تسک</label>
+                <input type="text" name="title" class="form-control" placeholder="عنوان را بنویسید..." required>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label">وزن تسک (۱ تا ۱۰)</label>
+                <input type="number" name="weight" class="form-control" min="1" max="10" value="1">
               </div>
             </div>
-            <div class="modal-footer">
-              <button class="btn btn-label-secondary" data-bs-dismiss="modal" type="button"> بستن</button>
-              <button class="btn btn-primary" type="button">ذخیره</button>
-            </div>
-          </form>
-        </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">بستن</button>
+            <button type="submit" class="btn btn-primary">ثبت و مشاهده جزئیات</button>
+          </div>
+        </form>
       </div>
+    </div>
+  </div>
     </div>
   </div>
 
@@ -285,16 +285,19 @@
 
           <div class="col-lg-8">
             <div class="card p-4">
-              <form id="taskForm">
+              <form id="taskForm" method="POST">
+                {% csrf_token %}
                 <div class="row g-3">
                   <div class="col-12">
                     <label class="form-label" for="title">عنوان تسک</label>
                     <input name="title" class="form-control" id="title" type="text" value="{{ task.title }}" />
+                    <input type="hidden" name="task_id" value="{{ task.id }}">
                   </div>
 
                   <div class="col-md-6">
                     <label class="form-label">موعد تحویل (سررسید)</label>
-                    <input class="form-control" id="flatpickr-deadline" placeholder="YYYY-MM-DD" type="text"
+                    <input name="deadline" class="form-control" id="flatpickr-deadline" placeholder="YYYY-MM-DD"
+                           type="text"
                            value="{{ task.deadline|date:'Y-m-d' }}" />
                   </div>
 
@@ -357,7 +360,7 @@
 
                   <div class="col-md-6">
                     <div class="border rounded-2 p-3 h-100 bg-light">
-                      <small class="text-muted d-block mb-1">تاریخ شروع تسک</small>
+                      <small class="text-muted d-block mb-1">تاریخ شروع تسک </small>
                       <span class="fw-semibold">
                                             {% if task.start_date %}{{ task.start_date|jformat:"%Y/%m/%d" }}{% else %}
                                               تعیین نشده{% endif %}
@@ -399,8 +402,11 @@
                 </div>
 
                 <div class="d-flex justify-content-end mt-4">
-                  <button class="btn btn-primary me-2" type="button">به‌روزرسانی</button>
-                  <button class="btn btn-label-danger" type="button">حذف</button>
+                  <button class="btn btn-primary me-2" type="submit" name="update_task">به‌روزرسانی</button>
+
+                  <button class="btn btn-label-danger" type="submit" name="delete_task"
+                          onclick="return confirm('حذف شود؟')">حذف
+                  </button>
                 </div>
               </form>
             </div>

@@ -3,7 +3,7 @@
 {% load static %}
 {% load i18n %}
 
-{% block title %}اپراتور ها{% endblock %}
+{% block title %}سک های {{ project.name }}{% endblock %}
 
 {% block vendor_css %}
   {{ block.super }}
@@ -324,6 +324,36 @@
       <span class="text-muted fw-light"> تسک ها /</span> پروژه {{ project.title }}
     </h4>
   </div>
+
+  <div class="modal modal-top fade" id="modalTop" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <form method="POST">
+          {% csrf_token %}
+          <div class="modal-header">
+            <h5 class="modal-title">ایجاد تسک جدید برای {{ project.title }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-8 mb-3">
+                <label class="form-label">عنوان تسک</label>
+                <input type="text" name="title" class="form-control" placeholder="عنوان را بنویسید..." required>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label">وزن تسک (۱ تا ۱۰)</label>
+                <input type="number" name="weight" class="form-control" min="1" max="10" value="1">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">بستن</button>
+            <button type="submit" class="btn btn-primary">ثبت و مشاهده جزئیات</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
   <div class="row">
     <div class="col-md-12 order-0 order-md-1">
       <ul class="nav nav-pills flex-column flex-md-row mb-4" id="infoTabs">
@@ -360,7 +390,9 @@
             <div class="row">
               <div class="col-lg-4 col-md-12">
                 <div class="col-12 d-flex justify-content-start gap-2 align-content-center">
-                  <button class="btn btn-outline-primary w-100 mb-3 p-2" type="">ایجاد تسک</button>
+                  <button class="btn btn-outline-primary w-100 mb-3 p-2" data-bs-target="#modalTop"
+                          data-bs-toggle="modal" type="">ایجاد تسک
+                  </button>
                 </div>
                 <!-- DataTable with Buttons -->
                 <div class="card">
