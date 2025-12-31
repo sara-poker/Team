@@ -498,7 +498,7 @@
                           <span class="fw-semibold">
 
                           {% if task.start_date %}
-                            {{ task.start_date }}
+                            {{ task.start_date|jformat:"%Y/%m/%d" }}
                           {% else %}
                             تعیین نشده
                           {% endif %}
@@ -512,7 +512,7 @@
                           <small class="text-muted d-block mb-1">تاریخ پایان تسک</small>
                           <span class="fw-semibold">
                           {% if task.end_date %}
-                            {{ task.end_date }}
+                            {{ task.end_date|jformat:"%Y/%m/%d" }}
                           {% else %}
                             تعیین نشده
                           {% endif %}

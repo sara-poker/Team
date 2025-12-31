@@ -79,7 +79,7 @@ def clear_cache_when_team_membership_changes(sender, instance, action, pk_set, *
 
 @receiver(pre_save, sender=Task)
 def sync_task_status_and_percent_signal(sender, instance, **kwargs):
-    if instance.percent >= 100 and instance.status != 'reviewing':
+    if instance.percent >= 100 and instance.status not in ['reviewing', 'completed']:
         instance.status = 'reviewing'
-    elif instance.status == 'reviewing' and instance.percent < 100:
+    elif instance.status in ['reviewing', 'completed'] and instance.percent < 100:
         instance.percent = 100
