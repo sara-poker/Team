@@ -121,7 +121,7 @@
 
       var table_element = $('#my_tasks_table');
       if (table_element.length) {
-        var url1 = '/api/getAllTask/{{ project.id }}?status={{ qu_pa }}';
+        var url1 = '/api/getAllTask/{{ project.id }}/?status={{ qu_pa }}';
         var url2 = '/projects/{{ project.id }}/tasks/';
         table_element.DataTable({
           ajax: { url: window.location.origin + url1, dataSrc: '' },
