@@ -1,0 +1,422 @@
+{% extends layout_path %}
+
+{% load static %}
+{% load i18n %}
+
+{% block title %}سک های {{ project.name }}{% endblock %}
+
+{% block vendor_css %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'vendor/libs/apex-charts/apex-charts.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/swiper/swiper.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/datatables-bs5/datatables.bootstrap5.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css' %}" />
+
+  <link rel="stylesheet" href="{% static 'vendor/libs/select2/select2.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/tagify/tagify.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/bootstrap-select/bootstrap-select.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/typeahead-js/typeahead.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/apex-charts/apex-charts.css' %}" />
+
+  <link rel="stylesheet" href="{% static 'vendor/libs/select2/select2.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/tagify/tagify.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/bootstrap-select/bootstrap-select.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/typeahead-js/typeahead.css' %}" />
+
+{% endblock vendor_css %}
+
+{% block vendor_js %}
+  {{ block.super }}
+  <script src="{% static 'vendor/libs/apex-charts/apexcharts.js' %}"></script>
+  <script src="{% static 'vendor/libs/swiper/swiper.js' %}"></script>
+  <script src="{% static 'vendor/libs/datatables-bs5/datatables-bootstrap5.js' %}"></script>
+  <script src="{% static 'vendor/libs/apex-charts/apexcharts.js' %}"></script>
+
+  <script src="{% static 'amcharts5/index.js' %} "></script>
+  <script src="{% static 'amcharts5/hierarchy.js' %}  "></script>
+  <script src="{% static 'amcharts5/themes/Animated.js' %}  "></script>
+  <script src="{% static 'amcharts5/plugins/exporting.js' %} "></script>
+
+  <script src="{% static 'vendor/libs/select2/select2.js' %}"></script>
+  <script src="{% static 'libs/select2/i18n/fa.js' %}"></script>
+  <script src="{% static 'vendor/libs/tagify/tagify.js' %}"></script>
+  <script src="{% static 'vendor/libs/bootstrap-select/bootstrap-select.js' %}"></script>
+  <script src="{% static 'libs/bootstrap-select/i18n/defaults-fa_IR.js' %}"></script>
+  <script src="{% static 'vendor/libs/typeahead-js/typeahead.js' %}"></script>
+  <script src="{% static 'vendor/libs/bloodhound/bloodhound.js' %}"></script>
+
+  <script src="{% static 'js/forms-selects.js' %}"></script>
+  <script src="{% static 'js/forms-tagify.js' %}"></script>
+  <script src="{% static 'js/forms-typeahead.js' %}"></script>
+  <script src="{% static 'js/loading.js' %}"></script>
+{% endblock vendor_js %}
+
+{% block page_css %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'vendor/css/pages/cards-advance.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/swiper/swiper.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/css/pages/ui-carousel.css' %}" />
+
+  <link rel="stylesheet" href="{% static 'vendor/libs/flatpickr/flatpickr.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/bootstrap-datepicker/bootstrap-datepicker.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/bootstrap-daterangepicker/bootstrap-daterangepicker.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/jquery-timepicker/jquery-timepicker.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/pickr/pickr-themes.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/spinkit/spinkit.css' %}" />
+
+  <link rel="stylesheet" href="{% static 'vendor/libs/datatables-bs5/datatables.bootstrap5.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/flatpickr/flatpickr.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/@form-validation/umd/styles/index.min.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/css/pages/page-profile.css' %}" />
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    }
+
+    #chartdiv {
+      direction: ltr;
+      width: 100%;
+      height: 500px;
+    }
+
+    .mzloading {
+      width: 100%;
+      position: fixed;
+      top: 0;
+      z-index: 5500;
+      background: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 75%;
+    }
+  </style>
+  <style>
+
+    .modal-body a {
+      color: #555;
+      text-decoration: underline;
+      transition: .2s;
+    }
+
+    .modal-body a:hover {
+      text-decoration: none;
+    }
+
+    .dt-buttons {
+      display: none;
+    }
+
+    th {
+      text-align: center !important;
+    }
+
+    td {
+      text-align: center;
+    }
+
+    tr {
+      transition: all .2s;
+    }
+
+    tr:hover {
+      background: #eee !important;
+    }
+
+    td a {
+      color: #666 !important;
+    }
+
+    .number_dy {
+      transition: all .3s;
+    }
+
+    .number_dy:hover {
+      background: #eee;
+    }
+
+    .number_dy h1 {
+      font-size: 50px;
+    }
+
+    h5 {
+      font-size: 15px !important;
+    }
+
+    #user_number {
+      border-right: 4px solid #df552b;
+      border-left: 4px solid #df552b;
+    }
+
+    #user_number h1 {
+      color: #df552b;
+    }
+
+
+    #ip_number {
+      border-right: 4px solid #ecb11b;
+      border-left: 4px solid #ecb11b;
+    }
+
+    #ip_number h1 {
+      color: #ecb11b;
+    }
+
+    #test_number {
+      border-right: 4px solid #ec6b1b;
+      border-left: 4px solid #ec6b1b;
+    }
+
+    #test_number h1 {
+      color: #ec6b1b;
+    }
+
+    tbody .control {
+      font-size: 0px;
+    }
+
+    .card {
+    }
+  </style>
+{% endblock page_css %}
+
+{% block page_js %}
+  {{ block.super }}
+  <script src="{% static 'focus/index.min.js' %}"></script>
+  <script src="{% static 'js/report-dashboard.js' %}"></script>
+  <script src="{% static 'js/forms-selects.js' %}"></script>
+  <script src="{% static 'js/forms-tagify.js' %}"></script>
+  <script src="{% static 'js/forms-typeahead.js' %}"></script>
+  <script src="{% static 'vendor/libs/swiper/swiper.js' %}"></script>
+  <script src="{% static 'js/ui-carousel.js' %}"></script>
+  <script src="{% static 'js/donut-chart.js' %}"></script>
+
+  <script src="{% static 'vendor/libs/moment/moment.js' %}"></script>
+  <script src="{% static 'libs/jdate/jdate.min.js' %}"></script>
+  <script src="{% static 'vendor/libs/flatpickr/flatpickr.js' %}"></script>
+  <script src="{% static 'libs/flatpickr/flatpickr-jdate.js' %}"></script>
+  <script src="{% static 'libs/flatpickr-jalali/dist/l10n/fa.js' %}"></script>
+  <script src="{% static 'vendor/libs/bootstrap-datepicker/bootstrap-datepicker.js' %}"></script>
+  <script src="{% static 'vendor/libs/bootstrap-daterangepicker/bootstrap-daterangepicker.js' %}"></script>
+  <script src="{% static 'vendor/libs/jquery-timepicker/jquery-timepicker.js' %}"></script>
+  <script src="{% static 'vendor/libs/pickr/pickr.js' %}"></script>
+
+  <script src="{% static 'vendor/libs/datatables-bs5/datatables-bootstrap5.js' %}"></script>
+  <script src="{% static 'vendor/libs/moment/moment.js' %}"></script>
+  <script src="{% static 'libs/jdate/jdate.min.js' %}"></script>
+  <script src="{% static 'vendor/libs/flatpickr/flatpickr.js' %}"></script>
+  <script src="{% static 'libs/flatpickr/flatpickr-jdate.js' %}"></script>
+  <script src="{% static 'libs/flatpickr-jalali/dist/l10n/fa.js' %}"></script>
+  <script src="{% static 'vendor/libs/@form-validation/umd/bundle/popular.min.js' %}"></script>
+  <script src="{% static 'vendor/libs/@form-validation/umd/plugin-bootstrap5/index.min.js' %}"></script>
+  <script src="{% static 'vendor/libs/@form-validation/umd/plugin-auto-t' %}"></script>
+
+
+
+  <script src="{% static 'js/forms-pickers-jalali.js' %}"></script>
+
+  <script>
+    $(function() {
+      // انتخاب جدول با ID جدید
+      var table_element = $('#my_tasks_table');
+
+      if (table_element.length) {
+        var url1 = '/api/getAllTask/{{ project.id }}?status={{ qu_pa }}';
+        var url2 = '/projects/{{ project.id }}/tasks/';
+
+        var dt_basic = table_element.DataTable({
+          ajax: {
+            url: window.location.origin + url1,
+            dataSrc: '' // مطمئن شوید خروجی API شما یک Array مستقیم است
+          },
+          order: [],
+          language: {
+            url: assetsPath + 'json/i18n/datatables-bs5/fa.json'
+          },
+          columns: [
+            { data: 'title' },
+            { data: 'weight' },
+            {
+              data: 'time_difference',
+              render: function(data, type, full, meta) {
+                var text = '';
+                var color = 'black';
+
+                if (data > 0) {
+                  text = data + ' روز گذشته';
+                  color = 'red';
+                } else if (data < 0) {
+                  text = Math.abs(data) + ' روز مانده';
+                  color = 'green';
+                } else {
+                  text = 'امروز';
+                  color = 'black';
+                }
+                return '<span style="color:' + color + '; font-weight:bold;">' + text + '</span>';
+              }
+            }
+          ],
+          // تنظیمات دیگر
+          responsive: true,
+          displayLength: 10,
+          lengthMenu: [10, 25, 50],
+          dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6 d-flex justify-content-end"f>>t<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
+
+          createdRow: function(row, data, dataIndex) {
+            $(row).css('cursor', 'pointer');
+            $(row).on('click', function() {
+              window.location.href = url2 + data['id'] + '?status={{ qu_pa }}';
+            });
+          }
+        });
+      }
+    });
+  </script>
+
+  <script>
+    $(function() {
+      // گرفتن آدرس کامل فعلی
+      var currentUrl = window.location.pathname + window.location.search;
+
+      // پیدا کردن تمام لینک‌های داخل ناوبری
+      $('#infoTabs .nav-link').each(function() {
+        var tabHref = $(this).attr('href');
+
+        // اگر آدرس فعلی شامل href این تب بود
+        if (currentUrl === tabHref) {
+          // اول همه رو از حالت active دربیار
+          $('#infoTabs .nav-link').removeClass('active');
+          // این یکی رو active کن
+          $(this).addClass('active');
+        }
+      });
+
+      // حالت رزرو: اگر هیچ تبی انتخاب نشد (مثلاً آدرس بدون پارامتر بود)
+      if ($('#infoTabs .nav-link.active').length === 0) {
+        $('#infoTabs .nav-link:first').addClass('active');
+      }
+    });
+  </script>
+
+{% endblock page_js %}
+
+{% block content %}
+  <div class="container-fluid h-100 mzloading">
+    <div class="sk-chase sk-primary">
+      <div class="sk-chase-dot"></div>
+      <div class="sk-chase-dot"></div>
+      <div class="sk-chase-dot"></div>
+      <div class="sk-chase-dot"></div>
+      <div class="sk-chase-dot"></div>
+      <div class="sk-chase-dot"></div>
+    </div>
+  </div>
+
+
+  <div class="row">
+    <h4 class="py-3 mb-4">
+      <span class="text-muted fw-light"> تسک ها /</span> پروژه {{ project.title }}
+    </h4>
+  </div>
+
+  <div class="modal modal-top fade" id="modalTop" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <form method="POST">
+          {% csrf_token %}
+          <div class="modal-header">
+            <h5 class="modal-title">ایجاد تسک جدید برای {{ project.title }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-8 mb-3">
+                <label class="form-label">عنوان تسک</label>
+                <input type="text" name="title" class="form-control" placeholder="عنوان را بنویسید..." required>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label">وزن تسک (۱ تا ۱۰)</label>
+                <input type="number" name="weight" class="form-control" min="1" max="10" value="1">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">بستن</button>
+            <button type="submit" class="btn btn-primary">ثبت و مشاهده جزئیات</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12 order-0 order-md-1">
+      <ul class="nav nav-pills flex-column flex-md-row mb-4" id="infoTabs">
+        <li class="nav-item">
+          <a class="nav-link" href="/projects/{{ project.id }}/tasks">
+            <i class="ti ti-list-check ti-xs me-1"></i>اخیرا ایجاد شده
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/projects/{{ project.id }}/tasks?status=in_progress">
+            <i class="ti ti-player-play ti-xs me-1"></i>در حال انجام
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/projects/{{ project.id }}/tasks?status=reviewing">
+            <i class="ti ti-eye ti-xs me-1"></i>در حال بررسی مدیر
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/projects/{{ project.id }}/tasks?status=completed">
+            <i class="ti ti-circle-check ti-xs me-1"></i>تکمیل شده
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class="row">
+    <!-- User Content -->
+
+    <div class="col-lg-12">
+      <div class="nav-align-top mb-4">
+        <div class="tab-content">
+          <div class="tab-pane fade show active" id="navs-pills-justified-profile" role="tabpanel">
+            <div class="row">
+              <div class="col-lg-4 col-md-12">
+                <div class="col-12 d-flex justify-content-start gap-2 align-content-center">
+                  <button class="btn btn-outline-primary w-100 mb-3 p-2" data-bs-target="#modalTop"
+                          data-bs-toggle="modal" type="">ایجاد تسک
+                  </button>
+                </div>
+                <!-- DataTable with Buttons -->
+                <div class="card">
+                  <div class="card-datatable table-responsive pt-0">
+                    <table id="my_tasks_table" class="datatables-basic table">
+                      <thead>
+                      <tr>
+                        <th>عنوان</th>
+                        <th>وزن</th>
+                        <th>موعد تحویل</th>
+                      </tr>
+                      </thead>
+                      <tbody></tbody>
+                    </table>
+                  </div>
+                </div>
+                <!--/ DataTable with Buttons -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock content %}
+

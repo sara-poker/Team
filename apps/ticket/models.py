@@ -1,7 +1,5 @@
 from django.db import models
 from config import settings
-
-
 class Message(models.Model):
     class Meta:
         verbose_name = 'پیام'

@@ -1,0 +1,209 @@
+{% extends layout_path %}
+
+{% load static %}
+{% load i18n %}
+
+{% load jformat %}
+
+{% block title %}افزودن تیم{% endblock %}
+
+{% block vendor_css %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'vendor/libs/datatables-bs5/datatables.bootstrap5.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/flatpickr/flatpickr.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/@form-validation/umd/styles/index.min.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/flatpickr/flatpickr.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/select2/select2.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/spinkit/spinkit.css' %}" />
+{% endblock vendor_css %}
+
+{% block vendor_js %}
+  {{ block.super }}
+  <script src="{% static 'vendor/libs/datatables-bs5/datatables-bootstrap5.js' %}"></script>
+  <script src="{% static 'vendor/libs/moment/moment.js' %}"></script>
+  <script src="{% static 'libs/jdate/jdate.min.js' %}"></script>
+  <script src="{% static 'vendor/libs/flatpickr/flatpickr.js' %}"></script>
+  <script src="{% static 'libs/flatpickr/flatpickr-jdate.js' %}"></script>
+  <script src="{% static 'libs/flatpickr-jalali/dist/l10n/fa.js' %}"></script>
+  <script src="{% static 'vendor/libs/@form-validation/umd/bundle/popular.min.js' %}"></script>
+  <script src="{% static 'vendor/libs/@form-validation/umd/plugin-bootstrap5/index.min.js' %}"></script>
+  <script src="{% static 'vendor/libs/@form-validation/umd/plugin-auto-focus/index.min.js' %}"></script>
+
+  <script src="{% static 'vendor/libs/select2/select2.js' %}"></script>
+
+
+{% endblock vendor_js %}
+
+{% block page_css %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'vendor/css/pages/cards-advance.css' %}" />
+  <style>
+    #alert_mo {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      z-index: 5000;
+    }
+
+    .none_alert_mo {
+      display: none !important;
+    }
+
+    .success_alert_mo {
+      color: #00b300 !important;
+      background: #cfeee6 !important;
+      border: 2px solid #00b300 !important;
+    }
+
+    .err_alert_mo {
+      color: #b30000 !important;
+      background: #eecfcf !important;
+      border: 2px solid #b30000 !important;
+    }
+
+  </style>
+{% endblock page_css %}
+
+{% block page_js %}
+  {{ block.super }}
+  <script src="{% static 'js/tables-datatables-basic.js' %}"></script>
+  <script src="{% static 'js/form-layouts.js' %}"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const deleteButtons = document.querySelectorAll('.item-delete');
+      const serverNameEl = document.getElementById('serverNameInModal');
+      const serverIdInput = document.getElementById('deleteTeamId');
+
+      deleteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const name = this.getAttribute('data-server-name');
+          const id = this.getAttribute('data-server-id');
+          serverNameEl.textContent = name;
+          serverIdInput.value = id;
+        });
+      });
+    });
+  </script>
+{% endblock page_js %}
+
+{% block content %}
+  <h4 class="py-3 mb-4">
+    <span class="text-muted fw-light">  مدیریت تیمینو /</span> افزودن تیم
+  </h4>
+  <!-- DataTable direct html : by byteMaster at 2024-02-01 -->
+  <div class="card mb-4">
+    <h5 class="card-header">اضافه کردن تیم</h5>
+    <form class="card-body" method="post">
+      {% csrf_token %}
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <label class="form-label" for="multicol-username">نام تیم</label>
+          <input name="team_name" class="form-control" id="multicol-username" placeholder="تیم یک" type="text" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="select2Basic">تیم پدر:</label>
+          <select class="select2 form-select form-select-lg" data-allow-clear="true" id="select2Basic"
+                  name="parent_team">
+            <option label="انتخاب کشور" value="0">انتخاب پدر</option>
+            {% for item in teams %}
+              <option label="{{ item.name }}" value="{{ item.id }}">{{ item.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="select2Success">اعضای پروژه</label>
+          <div class="select2-success">
+            <select class="select2 form-select" id="select2Success" name="member_project" multiple>
+              {% for user in users %}
+                <option value="{{ user.id }}">{{ user.first_name }} {{ user.last_name }} ( {{ user.username }} )
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+      <br>
+      <hr class="my-4 mx-n4" />
+      <button class="btn btn-primary me-sm-3 me-1" type="submit">اضافه کردن تیم</button>
+      <button class="btn btn-label-secondary" type="reset">لغو</button>
+    </form>
+  </div>
+  <div class="card">
+    <h5 class="card-header">لیست تیم ها</h5>
+    <div class="card-datatable table-responsive pt-0">
+      <table class="datatables-direct-basic table">
+        <thead>
+        <tr>
+          <th>نام</th>
+          <th>تیم پدر</th>
+          <th>تاریخ ایجاد</th>
+          <th>ایجاد کننده</th>
+          <th>عملیات</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for team in teams %}
+          <tr>
+            <td> {{ team.name }}</td>
+            <td>
+              {% if  team.parent.name %}
+                {{ team.parent.name }}
+              {% else %}
+                -
+              {% endif %}
+            </td>
+            <td>{{ team.created_at|jformat:"%H:%M | %Y/%m/%d" }}</td>
+            <td>{{ team.created_by.first_name }} {{ team.created_by.last_name }}</td>
+            <td>
+              <div class="d-inline-block">
+                <a href="javascript:;" class="btn btn-sm btn-icon item-delete"
+                   data-server-name="{{ team.name }}"
+                   data-server-id="{{ team.id }}"
+                   data-bs-toggle="modal"
+                   data-bs-target="#deleteServerModal">
+                  <i class="text-danger ti ti-trash-filled"></i>
+                </a>
+              </div>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+  <div id="alert_mo" class="alert alert-dark alert-dismissible {{ class_notification }}" role="alert">{{ message }}
+    <button aria-label="بستن" class="btn-close" data-bs-dismiss="alert" type="button"></button>
+  </div>
+
+  <div class="modal fade" id="deleteServerModal" tabindex="-1">
+    <div class="modal-dialog">
+      <form method="post" class="modal-content">
+        {% csrf_token %}
+
+        <input type="hidden" name="delete_team_id" id="deleteTeamId">
+
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteServerModalTitle">حذف تیم</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
+        </div>
+
+        <div class="modal-body">
+          <p>آیا از حذف <strong id="serverNameInModal">این تیم</strong> مطمئن هستید؟</p>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">صرف نظر</button>
+          <button type="submit" class="btn btn-danger">بله، حذف کن</button>
+
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+{% endblock %}

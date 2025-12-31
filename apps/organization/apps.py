@@ -1,10 +1,9 @@
 from django.apps import AppConfig
 
 
-class SetupConfig(AppConfig):
+class OrganizationConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'apps.setup'
+    name = 'apps.organization'
 
     def ready(self):
-        import apps.setup.signals
-
+        import apps.organization.signals

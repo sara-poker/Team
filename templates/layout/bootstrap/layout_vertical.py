@@ -1,67 +1,12 @@
-from django.conf import settings
-from django.core.cache import cache
-from django.db.models import Exists, OuterRef
-
-import json
-import requests
-
+import copy
 from web_project.template_helpers.theme import TemplateHelper
-
-API_BASE = settings.BASE_URL
-
-menu_file = {
-    "menu": [
-        {
-            "name": "پیشخوان",
-            "icon": "menu-icon tf-icons ti ti-layout-dashboard",
-            "slug": "dashboard",
-            "submenu": [
-                {
-                    "url": "index",
-                    "name": "نمای کلی",
-                    "slug": "dashboard-analytics"
-                }
-            ]
-        },
-        {
-            "name": "تنظیمات",
-            "icon": "menu-icon tf-icons ti ti-settings",
-            "slug": "setting",
-            "submenu": [
-                {
-                    "url": "profile",
-                    "name": "پروفایل",
-                    "slug": "profile",
-                },
-                {
-                    "url": "usersTable",
-                    "name": "جدول کاربران",
-                    "slug": "users_table"
-                }
-            ]
-        },
-        {
-            "name": "پشتیبانی",
-            "icon": "menu-icon tf-icons ti ti-help",
-            "slug": "support",
-            "submenu": [
-                {
-                    "url": "support",
-                    "name": "ارسال تیکت",
-                    "slug": "support"
-                }
-            ]
-        }
-    ]
-}
-
-"""
-This is an entry and Bootstrap class for the theme level.
-The init() function will be called in web_project/__init__.py
-"""
+from ..bootstrap.utils import *
+from ..bootstrap.menu_dict import menu_user, menu_manager, menu_admin
 
 
 class TemplateBootstrapLayoutVertical:
+
+    @staticmethod
     def init(context):
         context.update(
             {
@@ -74,16 +19,65 @@ class TemplateBootstrapLayoutVertical:
             }
         )
 
-        # map_context according to updated context values
         TemplateHelper.map_context(context)
 
         TemplateBootstrapLayoutVertical.init_menu_data(context)
 
         return context
 
+    @staticmethod
     def init_menu_data(context):
-        # Load the menu data from the JSON
-        menu_data = menu_file
+        view = context.get('view')
+        request = getattr(view, 'request', None)
 
-        # Updated context with menu_data
+        user = request.user if request else None
+
+        if user and user.is_authenticated:
+            if user.role == "manager":
+                selected_menu = menu_manager
+            elif user.role == "admin":
+                selected_menu = menu_admin
+            else:
+                selected_menu = menu_user
+        else:
+            selected_menu = menu_user
+
+        menu_data = copy.deepcopy(selected_menu)
+
+        if "menu" in menu_data and user.is_authenticated:
+            for i, item in enumerate(menu_data["menu"]):
+                if item.get("slug") == "teams":
+                    teams_submenu = build_team(user)
+
+                    if not teams_submenu:
+                        del menu_data["menu"][i]
+                    else:
+                        item["submenu"] = teams_submenu
+
+                    break
+
+            for i, item in enumerate(menu_data["menu"]):
+                if item.get("slug") == "projects":
+                    projects_submenu = build_project(user)[0]
+
+                    if not projects_submenu:
+                        del menu_data["menu"][i]
+                    else:
+                        item["submenu"] = projects_submenu
+
+                    break
+
+            for i, item in enumerate(menu_data["menu"]):
+                if item.get("slug") == "tasks_project":
+                    projects_tasks_submenu = build_project(user)[1]
+
+                    if not projects_tasks_submenu:
+                        del menu_data["menu"][i]
+                    else:
+                        item["submenu"] = projects_tasks_submenu
+
+                    break
+
         context.update({"menu_data": menu_data})
+
+

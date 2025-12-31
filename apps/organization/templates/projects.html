@@ -3,7 +3,9 @@
 {% load static %}
 {% load i18n %}
 
-{% block title %}سرور های تست{% endblock %}
+{% load jformat %}
+
+{% block title %}افزودن پروژه{% endblock %}
 
 {% block vendor_css %}
   {{ block.super }}
@@ -74,7 +76,7 @@
     document.addEventListener('DOMContentLoaded', function() {
       const deleteButtons = document.querySelectorAll('.item-delete');
       const serverNameEl = document.getElementById('serverNameInModal');
-      const serverIdInput = document.getElementById('deleteServerId');
+      const serverIdInput = document.getElementById('deleteProjectId');
 
       deleteButtons.forEach(button => {
         button.addEventListener('click', function() {
@@ -90,127 +92,105 @@
 
 {% block content %}
   <h4 class="py-3 mb-4">
-    <span class="text-muted fw-light">  تنظیمات /</span> سرور های تست
+    <span class="text-muted fw-light">  مدیریت تیمینو /</span> افزودن پروژه
   </h4>
   <!-- DataTable direct html : by byteMaster at 2024-02-01 -->
   <div class="card mb-4">
-    <h5 class="card-header">اضافه کردن سرور</h5>
+    <h5 class="card-header">اضافه کردن پروژه</h5>
     <form class="card-body" method="post">
       {% csrf_token %}
-      <div class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label" for="multicol-username">نام سرور</label>
-          <input name="server_name" class="form-control" id="multicol-username" placeholder="سرور یک" type="text" />
-        </div>
-        <div class="col-md-6">
-          <label class="form-label" for="multicol-ip">آیپی</label>
-          <input name="ip" class="form-control" id="multicol-ip" placeholder="192.168.1.1" type="text" />
-        </div>
 
-      </div>
-      <br>
-      <div class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label" for="select2Basic">کشور سرور:</label>
-          <select class="select2 form-select form-select-lg" data-allow-clear="true" id="select2Basic"
-                  name="country_server">
-            <option label="انتخاب کشور" value="0">انتخاب کشور</option>
-            {% for item in country %}
-              <option label="{{ item.persian_name }}" value="{{ item.id }}">{{ item.persian_name }}</option>
-            {% endfor %}
-          </select>
-
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <label class="form-label" for="multicol-username">عنوان پروژه:</label>
+          <input name="project_title" class="form-control" id="multicol-username" placeholder="پروژه یک" type="text" />
         </div>
-        <div class="col-md-6">
-          <label class="form-label" for="select2Basic2">ارائه دهنده خدمات سرور:</label>
-          <select class="select2 form-select form-select-lg" data-allow-clear="true" id="select2Basic2"
-                  name="isp_server">
-            <option label="انتخاب ارائه دهنده" value="0">انتخاب ارائه دهنده</option>
-            {% for item in isp %}
-              <option label="{{ item.name }}" value="{{ item.id }}">{{ item.name }}</option>
-            {% endfor %}
-          </select>
-
+        <div class="col-md-4">
+          <label class="form-label" for="select1Success">تیم</label>
+          <div class="select2-success">
+            <select class="select2 form-select" id="select1Success" name="teams_project" multiple>
+              {% for team in teams %}
+                <option value="{{ team.id }}">{{ team.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="select2Success">اعضای پروژه</label>
+          <div class="select2-success">
+            <select class="select2 form-select" id="select2Success" name="member_project" multiple>
+              {% for user in users %}
+                <option value="{{ user.id }}">{{ user.first_name }} {{ user.last_name }} ( {{ user.username }} )</option>
+              {% endfor %}
+            </select>
+          </div>
         </div>
       </div>
-      <br>
-      <div class="row g-3">
-        <div class="form-check form-switch mb-2 ps-5">
-          <label class="form-check-label" for="flexSwitchCheckChecked">فعال بودن سرور</label>
-          <input disabled checked name="is_active" class="form-check-input" id="flexSwitchCheckChecked"
-                 type="checkbox" />
 
+      <div class="row g-3 mb-4">
+        <div class="col-12">
+          <label class="form-label" for="description">توضیحات:</label>
+          <textarea
+            name="description"
+            class="form-control"
+            id="description"
+            rows="4"
+            style="font-family: 'IRANSans', sans-serif;"
+          ></textarea>
         </div>
       </div>
-      <hr class="my-4 mx-n4" />
-      <button class="btn btn-primary me-sm-3 me-1" type="submit">اضافه کردن سرور</button>
-      <button class="btn btn-label-secondary" type="reset">لغو</button>
+
+      <!-- ردیف سوم: دکمه‌ها کنار هم -->
+      <div class="row g-3">
+        <div class="col-12 d-flex justify-content-start gap-2">
+          <button class="btn btn-primary" type="submit">ایجاد پروژه</button>
+          <button class="btn btn-outline-danger" type="reset">لغو</button>
+        </div>
+      </div>
     </form>
   </div>
   <div class="card">
-    <h5 class="card-header">لیست سرور های تست</h5>
+    <h5 class="card-header">لیست پروژه ها</h5>
     <div class="card-datatable table-responsive pt-0">
       <table class="datatables-direct-basic table">
         <thead>
         <tr>
-          <th>پرچم</th>
-          <th>نام سرور</th>
-          <th>کشور</th>
-          <th>آیپی</th>
-          <th>آدرس</th>
-          <th>ارائه دهنده</th>
+          <th>کد</th>
+          <th>عنوان</th>
+          <th>درصد تکمیل</th>
           <th>وضعیت</th>
+          <th>ایجاد کننده</th>
+          <th>تاریخ ایجاد</th>
           <th>عملیات</th>
         </tr>
         </thead>
         <tbody>
-        {% for server in servers %}
+        {% for project in projects %}
           <tr>
+            <td> {{ project.code }}</td>
+            <td> {{ project.title }}</td>
+            <td> {{ project.progress }}</td>
             <td>
-              <img alt="{{ server.country.name }}"
-                   src="{% static 'img/flag/' %}{{ server.country.name|lower|cut:' ' }}.png"
-                   width="32">
-
-            </td>
-            <td>{{ server.name }}</td>
-            <td>
-              {{ server.country.persian_name }}
-            </td>
-            <td>
-              {{ server.ip }}
-            </td>
-            <td>
-              {% if server.url %}
-                {{ server.url }}
-              {% else %}
-                ---
+              {% if  project.status == "not_started" %}
+                <span class="badge  bg-label-danger">شروع نشده</span>
+              {% elif project.status == "in_progress" %}
+                <span class="badge  bg-label-warning">در حال انجام</span>
+              {% elif project.status == "completed" %}
+                <span class="badge  bg-label-success">تکمیل شده</span>
               {% endif %}
             </td>
-            <td>
-              {{ server.isp }}
-            </td>
-            <td>
-              {% if server.is_active %}
-                <span class="badge  bg-label-success">فعال</span>
-              {% elif server.is_active == False %}
-                <span class="badge  bg-label-danger">غیرفعال</span>
-              {% else %}
-                <span class="badge  bg-label-warning">درحال فعالسازی</span>
-              {% endif %}
-
-            </td>
+            <td>{{ project.created_by.first_name }} {{ project.created_by.last_name }}</td>
+            <td>{{ project.created_at|jformat:"%H:%M | %Y/%m/%d" }}</td>
             <td>
               <div class="d-inline-block">
                 <a href="javascript:;" class="btn btn-sm btn-icon item-delete"
-                   data-server-name="{{ server.name }}"
-                   data-server-id="{{ server.id }}"
+                   data-server-name="{{ project.tite }}"
+                   data-server-id="{{ project.id }}"
                    data-bs-toggle="modal"
                    data-bs-target="#deleteServerModal">
                   <i class="text-danger ti ti-trash-filled"></i>
                 </a>
               </div>
-              {#              <a href="javascript:;" class="btn btn-sm btn-icon item-edit"><i class="text-primary ti ti-pencil"></i></a>#}
-            </td>
           </tr>
         {% endfor %}
         </tbody>
@@ -228,15 +208,15 @@
       <form method="post" class="modal-content">
         {% csrf_token %}
 
-        <input type="hidden" name="delete_server_id" id="deleteServerId">
+        <input type="hidden" name="delete_project_id" id="deleteProjectId">
 
         <div class="modal-header">
-          <h5 class="modal-title" id="deleteServerModalTitle">حذف سرور</h5>
+          <h5 class="modal-title" id="deleteServerModalTitle">حذف پروژه</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
         </div>
 
         <div class="modal-body">
-          <p>آیا از حذف <strong id="serverNameInModal">این سرور</strong> مطمئن هستید؟</p>
+          <p>آیا از حذف <strong id="serverNameInModal">این پروژه</strong> مطمئن هستید؟</p>
         </div>
 
         <div class="modal-footer">

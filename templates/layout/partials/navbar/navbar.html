@@ -100,32 +100,32 @@
       <!-- /Search -->
     {% endif %}
 
-{#    {% if has_customizer %}#}
-{#      <!-- Style Switcher -->#}
-{#      <li class="nav-item dropdown-style-switcher dropdown me-2 me-xl-0">#}
-{#        <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">#}
-{#          <i class='ti ti-md'></i>#}
-{#        </a>#}
-{#        <ul class="dropdown-menu dropdown-menu-end dropdown-styles">#}
-{#          <li>#}
-{#            <a class="dropdown-item" href="javascript:void(0);" data-theme="light">#}
-{#              <span class="align-middle"><i class='ti ti-sun me-2'></i>روز</span>#}
-{#            </a>#}
-{#          </li>#}
-{#          <li>#}
-{#            <a class="dropdown-item" href="javascript:void(0);" data-theme="dark">#}
-{#              <span class="align-middle"><i class="ti ti-moon me-2"></i>شب</span>#}
-{#            </a>#}
-{#          </li>#}
-{#          <li>#}
-{#            <a class="dropdown-item" href="javascript:void(0);" data-theme="system">#}
-{#              <span class="align-middle"><i class="ti ti-device-desktop me-2"></i>سیستم</span>#}
-{#            </a>#}
-{#          </li>#}
-{#        </ul>#}
-{#      </li>#}
-{#      <!--/ Style Switcher -->#}
-{#    {% endif %}#}
+    {#    {% if has_customizer %}#}
+    {#      <!-- Style Switcher -->#}
+    {#      <li class="nav-item dropdown-style-switcher dropdown me-2 me-xl-0">#}
+    {#        <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">#}
+    {#          <i class='ti ti-md'></i>#}
+    {#        </a>#}
+    {#        <ul class="dropdown-menu dropdown-menu-end dropdown-styles">#}
+    {#          <li>#}
+    {#            <a class="dropdown-item" href="javascript:void(0);" data-theme="light">#}
+    {#              <span class="align-middle"><i class='ti ti-sun me-2'></i>روز</span>#}
+    {#            </a>#}
+    {#          </li>#}
+    {#          <li>#}
+    {#            <a class="dropdown-item" href="javascript:void(0);" data-theme="dark">#}
+    {#              <span class="align-middle"><i class="ti ti-moon me-2"></i>شب</span>#}
+    {#            </a>#}
+    {#          </li>#}
+    {#          <li>#}
+    {#            <a class="dropdown-item" href="javascript:void(0);" data-theme="system">#}
+    {#              <span class="align-middle"><i class="ti ti-device-desktop me-2"></i>سیستم</span>#}
+    {#            </a>#}
+    {#          </li>#}
+    {#        </ul>#}
+    {#      </li>#}
+    {#      <!--/ Style Switcher -->#}
+    {#    {% endif %}#}
 
     <!-- Quick links  -->
     {#          <li class="nav-item dropdown-shortcuts navbar-dropdown dropdown me-2 me-xl-0">#}
@@ -212,11 +212,11 @@
     <!-- Quick links -->
 
     <!-- Notification -->
-              <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-1">
-                <a class="nav-link dropdown-toggle hide-arrow" href="#" >
-                  <i class="ti ti-bell ti-md"></i>
-                </a>
-              </li>
+    <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-1">
+      <a class="nav-link dropdown-toggle hide-arrow" href="#">
+        <i class="ti ti-bell ti-md"></i>
+      </a>
+    </li>
     <!--/ Notification -->
 
     <!-- User -->
@@ -238,16 +238,24 @@
             <div class="d-flex">
               <div class="flex-shrink-0 me-3">
                 {% if request.user|has_group:"admin" %}
-                  <img src="{% static 'img/avatars/' %}{{ user.username }}.png" alt class="w-px-40 h-auto rounded-circle">
+                  <img src="{% static 'img/avatars/' %}{{ user.username }}.png" alt
+                       class="w-px-40 h-auto rounded-circle">
                 {% else %}
-                  <img src="{% static 'img/avatars/' %}{{ user.username }}.png" alt class="w-px-40 h-auto rounded-circle">
+                  <img src="{% static 'img/avatars/' %}{{ user.username }}.png" alt
+                       class="w-px-40 h-auto rounded-circle">
                 {% endif %}
               </div>
               <div class="flex-grow-1">
-                <span class="fw-medium d-block">{{ request.user.name }}</span>
-                {% for group in request.user.groups.all %}
-                  <small class="text-muted">{{ group.name }}</small>
-                {% endfor %}
+                <span class="fw-medium d-block">{{ request.user.first_name }} {{ request.user.last_name }}</span>
+
+                {% if request.user.role == "manager" %}
+                  <small class="text-muted">مدیر کل</small>
+                {% elif request.user.role == "admin" %}
+                  <small class="text-muted">مدیر میانی</small>
+                {% elif request.user.role == "user" %}
+                  <small class="text-muted">کارشناس</small>
+                {% endif %}
+
               </div>
             </div>
           </a>
