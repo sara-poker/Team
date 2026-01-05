@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import ProtectedError
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse
+from django.views import View
 
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
@@ -134,6 +135,19 @@ class ProjectDetail(TemplateView):
         })
 
         return context
+
+class ProjectChangeStatusView(View):
+    def post(self, request, pk):
+        project = get_object_or_404(Project, pk=pk)
+
+        status_flow = ['not_started', 'in_progress', 'completed']
+        current_index = status_flow.index(project.status)
+
+        if current_index < len(status_flow) - 1:
+            project.status = status_flow[current_index + 1]
+            project.save()
+
+        return redirect(reverse('projects_detail', args=[pk]))
 
 class TasksProjectDetail(TemplateView):
     def get_context_data(self, **kwargs):

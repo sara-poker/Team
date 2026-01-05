@@ -13,6 +13,10 @@ urlpatterns = [
         login_required(ProjectDetail.as_view(template_name="projects_detail.html")),
         name="projects_detail",
     ),
+    path('projects/<int:pk>/change-status/',
+         login_required(ProjectChangeStatusView.as_view()),
+         name='project_change_status'),
+
     path(
         "projects/<int:pk>/tasks",
         login_required(TasksProjectDetail.as_view(template_name="tasks_project.html")),
