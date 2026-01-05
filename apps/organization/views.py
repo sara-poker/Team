@@ -39,15 +39,15 @@ class ProjectsView(StaffRequiredMixin, TemplateView):
         teams = Team.objects.filter(members_teams=user).distinct()
 
         if user.role == 'manager':
-            users = User.objects.all().exclude(id=self.request.user.id).exclude(is_superuser=True)
+            users = User.objects.all().exclude(is_superuser=True)
 
         elif user.role == 'admin':
             users = User.objects.filter(
                 teams__in=teams
-            ).exclude(id=self.request.user.id).exclude(is_superuser=True).distinct()
+            ).exclude(role="manager").exclude(is_superuser=True).distinct()
 
         else:
-            users = User.objects.filter(id=user.id)
+            users = []
 
         context['class_notification'] = self.request.GET.get('alert_class', 'none_alert_mo')
         context['message'] = self.request.GET.get('message', '')
