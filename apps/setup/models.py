@@ -3,6 +3,8 @@ from django.db import models
 from django.utils import timezone
 
 from config import settings
+from django.core.exceptions import ValidationError
+
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, username, first_name, last_name, password=None, **extra_fields):
@@ -105,3 +107,10 @@ class Team(models.Model):
         for sub_team in self.sub_teams.all():
             members.extend(sub_team.get_all_members())
         return members
+
+    def delete(self, *args, **kwargs):
+        if self.teams_projects.exists():
+            raise ValidationError(
+                "این تیم به پروژه‌هایی متصل است. ابتدا پروژه را به تیم دیگری منتقل کنید."
+            )
+        super().delete(*args, **kwargs)

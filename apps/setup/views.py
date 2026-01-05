@@ -2,6 +2,8 @@ from django.db.models import ProtectedError
 from django.shortcuts import redirect, get_object_or_404
 from django.views.generic import (TemplateView)
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+
 from web_project import TemplateLayout
 from config.utils import *
 
@@ -25,13 +27,18 @@ class TeamView(ManagerOnlyMixin, TemplateView):
     def post(self, request, *args, **kwargs):
         if 'delete_team_id' in request.POST:
             team_id = request.POST.get('delete_team_id')
+
             try:
                 Team.objects.get(id=team_id).delete()
-                return redirect(f"{request.path}?alert_class=success_alert_mo&message=تیم با موفقیت حذف شد")
-            except ProtectedError:
                 return redirect(
-                    f"{request.path}?alert_class=err_alert_mo&message=برای این تیم پروژه و تسک هایی تعریف شده است، برای حذف تیم ابتدا پروژه های آن را به سایر تیم ها منتقل کنید.")
+                    f"{request.path}?alert_class=success_alert_mo&message=تیم با موفقیت حذف شد"
+                )
 
+
+            except ValidationError:
+                return redirect(
+                    f"{request.path}?alert_class=err_alert_mo&message=برای این تیم پروژه‌هایی تعریف شده است. ابتدا پروژه‌ها را منتقل کنید."
+                )
         User = get_user_model()
         name = request.POST.get('team_name', '').strip()
         parent_team = request.POST.get('parent_team')
