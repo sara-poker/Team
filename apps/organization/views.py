@@ -115,14 +115,24 @@ class ProjectsView(StaffRequiredMixin, TemplateView):
         return redirect(f"{request.path}?alert_class=success_alert_mo&message=پروژه با موفقیت ثبت شد")
 
 class ProjectDetail(TemplateView):
+    template_name = 'project/detail.html'
+
     def get_context_data(self, **kwargs):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
-
         project = get_object_or_404(Project, id=self.kwargs['pk'])
 
-        context['class_notification'] = self.request.GET.get('alert_class', 'none_alert_mo')
-        context['message'] = self.request.GET.get('message', '')
-        context['project'] = project
+        tasks = project.task_set.all()
+
+        context.update({
+            'project': project,
+            'progress': project.get_project_progress(),
+            'total_tasks': tasks.count(),
+            'task_not_started': tasks.filter(status='not_started').count(),
+            'task_in_progress': tasks.filter(status='in_progress').count(),
+            'task_reviewing': tasks.filter(status='reviewing').count(),
+            'task_completed': tasks.filter(status='completed').count(),
+        })
+
         return context
 
 class TasksProjectDetail(TemplateView):
