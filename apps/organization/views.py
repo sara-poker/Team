@@ -184,7 +184,7 @@ class TasksDetail(TemplateView):
         context['can_edit'] = (
             self.request.user.role != "user" or
             self.request.user in task.assignees.all() or
-            self.request.user.is_superuse
+            self.request.user.is_superuser
         )
 
         return context
