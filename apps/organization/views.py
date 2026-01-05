@@ -8,6 +8,7 @@ from django.urls import reverse
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 
 from config.utils import *
 
@@ -267,7 +268,7 @@ class TasksDetail(TemplateView):
 
 
 class GetAllTaskView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, project_id):
         queryset = Task.objects.filter(project_id=project_id)
@@ -283,5 +284,9 @@ class GetAllTaskView(APIView):
             reverse=True
         )
 
-        serializer = GetAllTaskAPISerializer(tasks, many=True)
+        serializer = GetAllTaskAPISerializer(
+            tasks,
+            many=True,
+            context={'request': request}
+        )
         return Response(serializer.data)

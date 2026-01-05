@@ -183,6 +183,11 @@
 
     .card {
     }
+
+    .my-task-row {
+      background-color: #f1f3f5 !important;
+      font-weight: 500;
+    }
   </style>
 {% endblock page_css %}
 
@@ -223,61 +228,83 @@
 
   <script>
     $(function() {
-      // انتخاب جدول با ID جدید
+
       var table_element = $('#my_tasks_table');
 
-      if (table_element.length) {
-        var url1 = '/api/getAllTask/{{ project.id }}?status={{ qu_pa }}';
-        var url2 = '/projects/{{ project.id }}/tasks/';
-
-        var dt_basic = table_element.DataTable({
-          ajax: {
-            url: window.location.origin + url1,
-            dataSrc: '' // مطمئن شوید خروجی API شما یک Array مستقیم است
-          },
-          order: [],
-          language: {
-            url: assetsPath + 'json/i18n/datatables-bs5/fa.json'
-          },
-          columns: [
-            { data: 'title' },
-            { data: 'weight' },
-            {
-              data: 'time_difference',
-              render: function(data, type, full, meta) {
-                var text = '';
-                var color = 'black';
-
-                if (data > 0) {
-                  text = data + ' روز گذشته';
-                  color = 'red';
-                } else if (data < 0) {
-                  text = Math.abs(data) + ' روز مانده';
-                  color = 'green';
-                } else {
-                  text = 'امروز';
-                  color = 'black';
-                }
-                return '<span style="color:' + color + '; font-weight:bold;">' + text + '</span>';
-              }
-            }
-          ],
-          // تنظیمات دیگر
-          responsive: true,
-          displayLength: 10,
-          lengthMenu: [10, 25, 50],
-          dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6 d-flex justify-content-end"f>>t<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
-
-          createdRow: function(row, data, dataIndex) {
-            $(row).css('cursor', 'pointer');
-            $(row).on('click', function() {
-              window.location.href = url2 + data['id'] + '/?status={{ qu_pa }}';
-            });
-          }
-        });
+      if (!table_element.length) {
+        return;
       }
+
+      var url1 = '/api/getAllTask/{{ project.id }}?status={{ qu_pa }}';
+      var url2 = '/projects/{{ project.id }}/tasks/';
+
+      var dt_basic = table_element.DataTable({
+        ajax: {
+          url: window.location.origin + url1,
+          dataSrc: ''
+        },
+
+        order: [],
+
+        language: {
+          url: assetsPath + 'json/i18n/datatables-bs5/fa.json'
+        },
+
+        columns: [
+          { data: 'title' },
+          { data: 'weight' },
+          {
+            data: 'time_difference',
+            render: function(data, type, full, meta) {
+              var text = '';
+              var color = 'black';
+
+              if (data > 0) {
+                text = data + ' روز گذشته';
+                color = 'red';
+              } else if (data < 0) {
+                text = Math.abs(data) + ' روز مانده';
+                color = 'green';
+              } else {
+                text = 'امروز';
+                color = 'black';
+              }
+
+              return '<span style="color:' + color + '; font-weight:bold;">' + text + '</span>';
+            }
+          }
+        ],
+
+        responsive: true,
+        displayLength: 10,
+        lengthMenu: [10, 25, 50],
+
+        dom:
+          '<"row"<"col-sm-12 col-md-6"l>' +
+          '<"col-sm-12 col-md-6 d-flex justify-content-end"f>>' +
+          't' +
+          '<"row"<"col-sm-12 col-md-6"i>' +
+          '<"col-sm-12 col-md-6"p>>',
+
+        createdRow: function(row, data, dataIndex) {
+
+          $(row).css('cursor', 'pointer');
+
+          // اگر این تسک مربوط به کاربر لاگین شده است
+          if (data.is_my_task === true) {
+            $(row).addClass('my-task-row');
+          }
+
+          $(row).on('click', function() {
+            window.location.href =
+              url2 + data.id + '/?status={{ qu_pa }}';
+          });
+        }
+      });
+
     });
   </script>
+
 
   <script>
     $(function() {
