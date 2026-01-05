@@ -227,84 +227,125 @@
   <script src="{% static 'js/forms-pickers-jalali.js' %}"></script>
 
   <script>
-    $(function() {
+  function initMyTasksTable() {
+    var table_element = $('#my_tasks_table');
 
-      var table_element = $('#my_tasks_table');
+    if (!table_element.length) {
+      return;
+    }
 
-      if (!table_element.length) {
-        return;
-      }
+    if ($.fn.DataTable.isDataTable('#my_tasks_table')) {
+      $('#my_tasks_table').DataTable().destroy();
+    }
 
-      var url1 = '/api/getAllTask/{{ project.id }}?status={{ qu_pa }}';
-      var url2 = '/projects/{{ project.id }}/tasks/';
+    var url1 = '/api/getAllTask/{{ project.id }}?status={{ qu_pa }}';
+    var url2 = '/projects/{{ project.id }}/tasks/';
 
-      var dt_basic = table_element.DataTable({
-        ajax: {
-          url: window.location.origin + url1,
-          dataSrc: ''
-        },
+    table_element.DataTable({
+      ajax: {
+        url: window.location.origin + url1,
+        dataSrc: ''
+      },
 
-        order: [],
+      order: [],
+      retrieve: true,
+      destroy: true,
 
-        language: {
-          url: assetsPath + 'json/i18n/datatables-bs5/fa.json'
-        },
+      language: {
+        url: assetsPath + 'json/i18n/datatables-bs5/fa.json'
+      },
 
-        columns: [
-          { data: 'title' },
-          { data: 'weight' },
-          {
-            data: 'time_difference',
-            render: function(data, type, full, meta) {
-              var text = '';
-              var color = 'black';
+      columns: [
+        { data: 'title' },
+        { data: 'weight' },
+        {
+          data: 'time_difference',
+          render: function(data, type, full, meta) {
+            var text = '';
+            var badgeClass = '';
 
-              if (data > 0) {
-                text = data + ' روز گذشته';
-                color = 'red';
-              } else if (data < 0) {
-                text = Math.abs(data) + ' روز مانده';
-                color = 'green';
-              } else {
-                text = 'امروز';
-                color = 'black';
-              }
-
-              return '<span style="color:' + color + '; font-weight:bold;">' + text + '</span>';
+            if (data > 0) {
+              text = data + ' روز گذشته';
+              badgeClass = 'badge bg-label-danger';
+            } else if (data < 0) {
+              text = Math.abs(data) + ' روز مانده';
+              badgeClass = 'badge bg-label-success';
+            } else {
+              text = 'امروز';
+              badgeClass = 'badge bg-label-warning';
             }
+
+            return '<span class="' + badgeClass + '">' + text + '</span>';
           }
-        ],
-
-        responsive: true,
-        displayLength: 10,
-        lengthMenu: [10, 25, 50],
-
-        dom:
-          '<"row"<"col-sm-12 col-md-6"l>' +
-          '<"col-sm-12 col-md-6 d-flex justify-content-end"f>>' +
-          't' +
-          '<"row"<"col-sm-12 col-md-6"i>' +
-          '<"col-sm-12 col-md-6"p>>',
-
-        createdRow: function(row, data, dataIndex) {
-
-          $(row).css('cursor', 'pointer');
-
-          // اگر این تسک مربوط به کاربر لاگین شده است
-          if (data.is_my_task === true) {
-            $(row).addClass('my-task-row');
-          }
-
-          $(row).on('click', function() {
-            window.location.href =
-              url2 + data.id + '/?status={{ qu_pa }}';
-          });
         }
-      });
+      ],
 
+      responsive: true,
+      displayLength: 10,
+      lengthMenu: [10, 25, 50],
+
+      dom:
+        '<"row"<"col-sm-12 col-md-6"l>' +
+        '<"col-sm-12 col-md-6 d-flex justify-content-end"f>>' +
+        't' +
+        '<"row"<"col-sm-12 col-md-6"i>' +
+        '<"col-sm-12 col-md-6"p>>',
+
+      rowCallback: function(row, data, index) {
+        $(row).css('cursor', 'pointer');
+        $(row).removeClass('my-task-row other-task-row');
+
+        if (data.is_my_task === true) {
+          $(row).addClass('my-task-row');
+        } else {
+          $(row).addClass('other-task-row');
+        }
+      },
+
+      drawCallback: function() {
+        var api = this.api();
+
+        $('#my_tasks_table tbody tr').off('click').on('click', function() {
+          var data = api.row(this).data();
+          if (data) {
+            window.location.href = url2 + data.id + '/?status={{ qu_pa }}';
+          }
+        });
+      }
     });
-  </script>
+  }
 
+  // اولین بار که صفحه لود می‌شه
+  $(document).ready(function() {
+    initMyTasksTable();
+  });
+
+  // وقتی با دکمه Back مرورگر برمی‌گردید (bfcache)
+  $(window).on('pageshow', function(event) {
+    if (event.originalEvent.persisted) {
+      initMyTasksTable();
+    }
+  });
+</script>
+  <style>
+    .my-task-row {
+      background-color: rgba(115, 103, 240, 0.08) !important;
+      border-right: 3px solid #7367f0;
+    }
+
+    .my-task-row:hover {
+      background-color: rgba(115, 103, 240, 0.15) !important;
+    }
+
+    #my_tasks_table tbody tr {
+      transition: all 0.2s ease;
+    }
+
+    #my_tasks_table tbody tr:hover {
+      transform: translateX(-3px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+  </style>
 
   <script>
     $(function() {
@@ -330,6 +371,8 @@
       }
     });
   </script>
+
+
 
 {% endblock page_js %}
 

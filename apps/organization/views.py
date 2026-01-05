@@ -2,7 +2,6 @@ from django.views.generic import (TemplateView)
 from django.contrib.auth import get_user_model
 from django.db.models import ProtectedError
 from django.shortcuts import redirect, get_object_or_404
-from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 
 from rest_framework.response import Response
@@ -18,6 +17,7 @@ from web_project import TemplateLayout
 
 import jdatetime
 from datetime import datetime
+from django.utils import timezone
 
 
 class ProjectsView(StaffRequiredMixin, TemplateView):
@@ -114,7 +114,6 @@ class ProjectsView(StaffRequiredMixin, TemplateView):
 
         return redirect(f"{request.path}?alert_class=success_alert_mo&message=پروژه با موفقیت ثبت شد")
 
-
 class ProjectDetail(TemplateView):
     def get_context_data(self, **kwargs):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
@@ -125,7 +124,6 @@ class ProjectDetail(TemplateView):
         context['message'] = self.request.GET.get('message', '')
         context['project'] = project
         return context
-
 
 class TasksProjectDetail(TemplateView):
     def get_context_data(self, **kwargs):
@@ -165,13 +163,6 @@ class TasksProjectDetail(TemplateView):
         except Exception as e:
             return redirect(f"{request.path}?alert_class=err_alert_mo&message=خطایی در ثبت تسک رخ داد")
 
-
-from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse
-from django.utils import timezone
-import jdatetime
-
-
 class TasksDetail(TemplateView):
     def get_context_data(self, **kwargs):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
@@ -186,8 +177,13 @@ class TasksDetail(TemplateView):
         context['project'] = project
         context['qu_pa'] = qu_pa
         context['task'] = task
-
         context['user_role'] = self.request.user.role
+
+        context['is_assignee'] = self.request.user in task.assignees.all()
+        context['can_edit'] = (
+            self.request.user.role != "user" or
+            self.request.user in task.assignees.all()
+        )
 
         return context
 
@@ -198,8 +194,16 @@ class TasksDetail(TemplateView):
             task_id = request.POST.get('task_id')
             task = get_object_or_404(Task, id=task_id, project=project)
 
+            is_assignee = request.user in task.assignees.all()
+            if request.user.role == "user" and not is_assignee:
+                return redirect(f"{request.path}?alert_class=err_alert_mo&message=شما دسترسی ندارید")
+
             new_status = request.POST.get('change_status')
             if new_status:
+                if request.user.role == "user" and new_status == "completed":
+                    return redirect(
+                        f"{request.path}?alert_class=err_alert_mo&message=فقط مدیر می‌تواند تسک را تکمیل کند")
+
                 task.status = new_status
 
                 if new_status == "in_progress":
@@ -219,8 +223,6 @@ class TasksDetail(TemplateView):
             if request.user.role == "user" and task.created_by != request.user:
                 return redirect(f"{request.path}?alert_class=err_alert_mo&message=شما اجازه حذف این تسک را ندارید")
 
-            task_id = request.POST.get('task_id')
-            task = get_object_or_404(Task, id=task_id, project=project)
             task.delete()
             success_delete_url = reverse('tasks_project', kwargs={'pk': project.id})
             return redirect(f"{success_delete_url}?alert_class=success_alert_mo&message=تسک با موفقیت حذف شد")
@@ -229,9 +231,16 @@ class TasksDetail(TemplateView):
             task_id = request.POST.get('task_id')
             task = get_object_or_404(Task, id=task_id, project=project)
 
-            new_status_val = request.POST.get('status')
-            if new_status_val:
-                task.status = new_status_val
+            is_assignee = request.user in task.assignees.all()
+            is_manager_or_admin = request.user.role != "user"
+
+            if not is_assignee and not is_manager_or_admin:
+                return redirect(f"{request.path}?alert_class=err_alert_mo&message=شما دسترسی ویرایش ندارید")
+
+            if is_manager_or_admin:
+                new_status_val = request.POST.get('status')
+                if new_status_val:
+                    task.status = new_status_val
 
             description_val = request.POST.get('description')
             if description_val is not None:
@@ -241,9 +250,10 @@ class TasksDetail(TemplateView):
             if percent_val:
                 task.percent = float(percent_val)
 
-            weight_val = request.POST.get('weight')
-            if weight_val:
-                task.weight = int(weight_val)
+            if is_manager_or_admin:
+                weight_val = request.POST.get('weight')
+                if weight_val:
+                    task.weight = int(weight_val)
 
             deadline_shamsi = request.POST.get('deadline')
             if deadline_shamsi:
@@ -259,14 +269,16 @@ class TasksDetail(TemplateView):
 
             task.save()
 
-            assignees_ids = request.POST.getlist('assignees')
-            if assignees_ids:
-                task.assignees.set(assignees_ids)
-            else:
-                task.assignees.clear()
+            if is_manager_or_admin:
+                assignees_ids = request.POST.getlist('assignees')
+                if assignees_ids:
+                    task.assignees.set(assignees_ids)
+                else:
+                    task.assignees.clear()
 
             qu_pa = f"?status={task.status}" if task.status != "not_started" else ""
-            return redirect(f"{request.path}{qu_pa}")
+            return redirect(
+                f"{request.path}?alert_class=success_alert_mo&message=تسک بروزرسانی شد{qu_pa.replace('?', '&') if qu_pa else ''}")
 
         title = request.POST.get('title', '').strip()
         weight = request.POST.get('weight', 1)

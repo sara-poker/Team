@@ -111,12 +111,38 @@
       font-weight: 500;
     }
   </style>
+  <style>
+    .my-task-row {
+      background-color: rgba(115, 103, 240, 0.08) !important;
+      border-right: 3px solid #7367f0;
+    }
+
+    .my-task-row:hover {
+      background-color: rgba(115, 103, 240, 0.15) !important;
+    }
+
+    #my_tasks_table tbody tr {
+      transition: all 0.2s ease;
+    }
+
+    #my_tasks_table tbody tr:hover {
+      transform: translateX(-3px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+  </style>
 {% endblock page_css %}
 
 {% block page_js %}
   {{ block.super }}
+  <script src="{% static 'js/forms-pickers-jalali.js' %}"></script>
   <script>
-    $(function() {
+    function initMyTasksTable() {
+      $('#flatpickr-deadline').flatpickr({
+        locale: 'fa',
+        altInput: true,
+        altFormat: 'Y/m/d',
+        dateFormat: 'Y-m-d'
+      });
 
       var table_element = $('#my_tasks_table');
 
@@ -124,16 +150,22 @@
         return;
       }
 
+      if ($.fn.DataTable.isDataTable('#my_tasks_table')) {
+        $('#my_tasks_table').DataTable().destroy();
+      }
+
       var url1 = '/api/getAllTask/{{ project.id }}?status={{ qu_pa }}';
       var url2 = '/projects/{{ project.id }}/tasks/';
 
-      var dt_basic = table_element.DataTable({
+      table_element.DataTable({
         ajax: {
           url: window.location.origin + url1,
           dataSrc: ''
         },
 
         order: [],
+        retrieve: true,
+        destroy: true,
 
         language: {
           url: assetsPath + 'json/i18n/datatables-bs5/fa.json'
@@ -146,20 +178,20 @@
             data: 'time_difference',
             render: function(data, type, full, meta) {
               var text = '';
-              var color = 'black';
+              var badgeClass = '';
 
               if (data > 0) {
                 text = data + ' روز گذشته';
-                color = 'red';
+                badgeClass = 'badge bg-label-danger';
               } else if (data < 0) {
                 text = Math.abs(data) + ' روز مانده';
-                color = 'green';
+                badgeClass = 'badge bg-label-success';
               } else {
                 text = 'امروز';
-                color = 'black';
+                badgeClass = 'badge bg-label-warning';
               }
 
-              return '<span style="color:' + color + '; font-weight:bold;">' + text + '</span>';
+              return '<span class="' + badgeClass + '">' + text + '</span>';
             }
           }
         ],
@@ -175,25 +207,66 @@
           '<"row"<"col-sm-12 col-md-6"i>' +
           '<"col-sm-12 col-md-6"p>>',
 
-        createdRow: function(row, data, dataIndex) {
-
+        rowCallback: function(row, data, index) {
           $(row).css('cursor', 'pointer');
+          $(row).removeClass('my-task-row other-task-row');
 
-          // اگر این تسک مربوط به کاربر لاگین شده است
           if (data.is_my_task === true) {
             $(row).addClass('my-task-row');
+          } else {
+            $(row).addClass('other-task-row');
           }
+        },
 
-          $(row).on('click', function() {
-            window.location.href =
-              url2 + data.id + '/?status={{ qu_pa }}';
+        drawCallback: function() {
+          var api = this.api();
+
+          $('#my_tasks_table tbody tr').off('click').on('click', function() {
+            var data = api.row(this).data();
+            if (data) {
+              window.location.href = url2 + data.id + '/?status={{ qu_pa }}';
+            }
           });
         }
       });
+    }
 
+    // اولین بار که صفحه لود می‌شه
+    $(document).ready(function() {
+      initMyTasksTable();
+    });
+
+    // وقتی با دکمه Back مرورگر برمی‌گردید (bfcache)
+    $(window).on('pageshow', function(event) {
+      if (event.originalEvent.persisted) {
+        initMyTasksTable();
+      }
     });
   </script>
+  <script>
+    $(function() {
+      // گرفتن آدرس کامل فعلی
+      var currentUrl = window.location.pathname + window.location.search;
 
+      // پیدا کردن تمام لینک‌های داخل ناوبری
+      $('#infoTabs .nav-link').each(function() {
+        var tabHref = $(this).attr('href');
+
+        // اگر آدرس فعلی شامل href این تب بود
+        if (currentUrl === tabHref) {
+          // اول همه رو از حالت active دربیار
+          $('#infoTabs .nav-link').removeClass('active');
+          // این یکی رو active کن
+          $(this).addClass('active');
+        }
+      });
+
+      // حالت رزرو: اگر هیچ تبی انتخاب نشد (مثلاً آدرس بدون پارامتر بود)
+      if ($('#infoTabs .nav-link.active').length === 0) {
+        $('#infoTabs .nav-link:first').addClass('active');
+      }
+    });
+  </script>
 {% endblock page_js %}
 
 {% block content %}
@@ -474,7 +547,7 @@
 
                     <button class="btn btn-primary me-2" type="submit" name="update_task">به‌روزرسانی</button>
 
-                    {% if request.user.role != "user" or task.created_by == request.user%}
+                    {% if request.user.role != "user" or task.created_by == request.user %}
                       <button class="btn btn-label-danger" type="submit" name="delete_task"
                               onclick="return confirm('حذف شود؟')">حذف
                       </button>
