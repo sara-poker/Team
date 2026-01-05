@@ -172,6 +172,7 @@ class TasksDetail(TemplateView):
 
         qu_pa = self.request.GET.get('status', 'not_started')
 
+
         context['class_notification'] = self.request.GET.get('alert_class', 'none_alert_mo')
         context['message'] = self.request.GET.get('message', '')
         context['project'] = project
@@ -179,10 +180,11 @@ class TasksDetail(TemplateView):
         context['task'] = task
         context['user_role'] = self.request.user.role
 
-        context['is_assignee'] = self.request.user in task.assignees.all()
+        context['is_assignee'] = self.request.user.is_superuser or (self.request.user in task.assignees.all())
         context['can_edit'] = (
             self.request.user.role != "user" or
-            self.request.user in task.assignees.all()
+            self.request.user in task.assignees.all() or
+            self.request.user.is_superuse
         )
 
         return context

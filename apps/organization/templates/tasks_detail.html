@@ -418,14 +418,16 @@
                       <select class="select2 form-select" id="assigneesSelect" name="assignees" multiple
                               {% if request.user.role == "user" %}disabled{% endif %}>
                         {% for u in project.members.all %}
-                          <option value="{{ u.id }}"
-                            {% if u in task.assignees.all %} selected {% endif %}>
-                            {% if u.get_full_name %}
-                              {{ u.get_full_name }}
-                            {% else %}
-                              {{ u.username }}
-                            {% endif %}
-                          </option>
+                          {% if not u.is_superuser %}
+                            <option value="{{ u.id }}"
+                              {% if u in task.assignees.all %} selected {% endif %}>
+                              {% if u.get_full_name %}
+                                {{ u.get_full_name }}
+                              {% else %}
+                                {{ u.username }}
+                              {% endif %}
+                            </option>
+                          {% endif %}
                         {% endfor %}
                       </select>
                     </div>
