@@ -245,23 +245,22 @@
   </script>
   <script>
     $(function() {
-      // گرفتن آدرس کامل فعلی
-      var currentUrl = window.location.pathname + window.location.search;
+      // گرفتن پارامتر status از URL فعلی
+      var urlParams = new URLSearchParams(window.location.search);
+      var currentStatus = urlParams.get('status');
 
-      // پیدا کردن تمام لینک‌های داخل ناوبری
       $('#infoTabs .nav-link').each(function() {
         var tabHref = $(this).attr('href');
 
-        // اگر آدرس فعلی شامل href این تب بود
-        if (currentUrl === tabHref) {
-          // اول همه رو از حالت active دربیار
+        var tabUrl = new URL(tabHref, window.location.origin);
+        var tabStatus = new URLSearchParams(tabUrl.search).get('status');
+
+        if (currentStatus === tabStatus) {
           $('#infoTabs .nav-link').removeClass('active');
-          // این یکی رو active کن
           $(this).addClass('active');
         }
       });
 
-      // حالت رزرو: اگر هیچ تبی انتخاب نشد (مثلاً آدرس بدون پارامتر بود)
       if ($('#infoTabs .nav-link.active').length === 0) {
         $('#infoTabs .nav-link:first').addClass('active');
       }
@@ -523,13 +522,12 @@
                 </div>
 
                 <div class="d-flex justify-content-end mt-4">
-
                   {% if request.user.role == 'user' and request.user not in task.assignees.all %}
                     <button class="btn btn-secondary me-2" disabled type="button">
                       شما فقط دسترسی مشاهده دارید
                     </button>
                   {% else %}
-                    {% if task.status == "not_started" %}
+                    {% if task.status == "not_started" and request.user.role == "user" %}
                       <button class="btn btn-warning me-2" type="submit" name="change_status" value="in_progress">
                         شروع پروژه
                       </button>
@@ -558,6 +556,22 @@
 
                 </div>
               </form>
+              <script>
+                (function() {
+                  const percentRange = document.getElementById('taskPercent');
+                  const percentOutput = document.getElementById('taskPercentValue');
+
+                  if (percentRange && percentOutput) {
+                    // مقدار اولیه
+                    percentOutput.textContent = percentRange.value + '%';
+
+                    // آپدیت هنگام حرکت اسلایدر
+                    percentRange.addEventListener('input', function() {
+                      percentOutput.textContent = this.value + '%';
+                    });
+                  }
+                })();
+              </script>
 
             </div>
           </div>
