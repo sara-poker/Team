@@ -2,9 +2,12 @@ from django.views.generic import (TemplateView)
 from django.contrib.auth import get_user_model
 from django.db.models import ProtectedError
 from django.shortcuts import redirect, get_object_or_404
+from django.urls import reverse
+
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 
 from config.utils import *
 
@@ -14,6 +17,7 @@ from web_project import TemplateLayout
 
 import jdatetime
 from datetime import datetime
+from django.utils import timezone
 
 
 class ProjectsView(StaffRequiredMixin, TemplateView):
@@ -35,15 +39,15 @@ class ProjectsView(StaffRequiredMixin, TemplateView):
         teams = Team.objects.filter(members_teams=user).distinct()
 
         if user.role == 'manager':
-            users = User.objects.all().exclude(id=self.request.user.id)
+            users = User.objects.all().exclude(is_superuser=True)
 
         elif user.role == 'admin':
             users = User.objects.filter(
                 teams__in=teams
-            ).exclude(id=self.request.user.id).distinct()
+            ).exclude(role="manager").exclude(is_superuser=True).distinct()
 
         else:
-            users = User.objects.filter(id=user.id)
+            users = []
 
         context['class_notification'] = self.request.GET.get('alert_class', 'none_alert_mo')
         context['message'] = self.request.GET.get('message', '')
@@ -54,6 +58,7 @@ class ProjectsView(StaffRequiredMixin, TemplateView):
         return context
 
     def post(self, request, *args, **kwargs):
+        User = get_user_model()
 
         if 'delete_project_id' in request.POST:
             project_id = request.POST.get('delete_project_id')
@@ -77,8 +82,13 @@ class ProjectsView(StaffRequiredMixin, TemplateView):
 
         title = request.POST.get('project_title', '').strip()
         teams_id = request.POST.getlist('teams_project', '')
-        members_id = request.POST.getlist('member_project', '')
+        members_id = request.POST.getlist('member_project', [])
         description = request.POST.get('description', '')
+
+        superuser_ids = User.objects.filter(is_superuser=True).values_list('id', flat=True)
+        members_id = list(
+            set(map(str, members_id)) | set(map(str, superuser_ids))
+        )
 
         if not title:
             return redirect(f"{request.path}?alert_class=err_alert_mo&message=لطفاً عنوان پروژه را وارد کنید.")
@@ -104,7 +114,6 @@ class ProjectsView(StaffRequiredMixin, TemplateView):
 
         return redirect(f"{request.path}?alert_class=success_alert_mo&message=پروژه با موفقیت ثبت شد")
 
-
 class ProjectDetail(TemplateView):
     def get_context_data(self, **kwargs):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
@@ -116,17 +125,12 @@ class ProjectDetail(TemplateView):
         context['project'] = project
         return context
 
-
-from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse
-from .models import Project, Task
-
-
 class TasksProjectDetail(TemplateView):
     def get_context_data(self, **kwargs):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
         project = get_object_or_404(Project, id=self.kwargs['pk'])
         qu_pa = self.request.GET.get('status', 'not_started')
+
         context['class_notification'] = self.request.GET.get('alert_class', 'none_alert_mo')
         context['message'] = self.request.GET.get('message', '')
         context['project'] = project
@@ -159,7 +163,6 @@ class TasksProjectDetail(TemplateView):
         except Exception as e:
             return redirect(f"{request.path}?alert_class=err_alert_mo&message=خطایی در ثبت تسک رخ داد")
 
-
 class TasksDetail(TemplateView):
     def get_context_data(self, **kwargs):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
@@ -169,60 +172,115 @@ class TasksDetail(TemplateView):
 
         qu_pa = self.request.GET.get('status', 'not_started')
 
+
         context['class_notification'] = self.request.GET.get('alert_class', 'none_alert_mo')
         context['message'] = self.request.GET.get('message', '')
         context['project'] = project
         context['qu_pa'] = qu_pa
         context['task'] = task
+        context['user_role'] = self.request.user.role
+
+        context['is_assignee'] = self.request.user.is_superuser or (self.request.user in task.assignees.all())
+        context['can_edit'] = (
+            self.request.user.role != "user" or
+            self.request.user in task.assignees.all() or
+            self.request.user.is_superuse
+        )
+
         return context
 
     def post(self, request, *args, **kwargs):
         project = get_object_or_404(Project, id=self.kwargs['pk'])
 
+        if 'change_status' in request.POST:
+            task_id = request.POST.get('task_id')
+            task = get_object_or_404(Task, id=task_id, project=project)
+
+            is_assignee = request.user in task.assignees.all()
+            if request.user.role == "user" and not is_assignee:
+                return redirect(f"{request.path}?alert_class=err_alert_mo&message=شما دسترسی ندارید")
+
+            new_status = request.POST.get('change_status')
+            if new_status:
+                if request.user.role == "user" and new_status == "completed":
+                    return redirect(
+                        f"{request.path}?alert_class=err_alert_mo&message=فقط مدیر می‌تواند تسک را تکمیل کند")
+
+                task.status = new_status
+
+                if new_status == "in_progress":
+                    task.start_date = timezone.now().date()
+                elif new_status == "reviewing":
+                    task.end_date = timezone.now().date()
+
+                task.save()
+
+            qu_pa = f"?status={task.status}" if task.status != "not_started" else ""
+            return redirect(f"{request.path}{qu_pa}")
+
         if 'delete_task' in request.POST:
             task_id = request.POST.get('task_id')
             task = get_object_or_404(Task, id=task_id, project=project)
+
+            if request.user.role == "user" and task.created_by != request.user:
+                return redirect(f"{request.path}?alert_class=err_alert_mo&message=شما اجازه حذف این تسک را ندارید")
+
             task.delete()
             success_delete_url = reverse('tasks_project', kwargs={'pk': project.id})
-            return redirect(f"{success_delete_url}")
+            return redirect(f"{success_delete_url}?alert_class=success_alert_mo&message=تسک با موفقیت حذف شد")
 
         if 'update_task' in request.POST:
             task_id = request.POST.get('task_id')
             task = get_object_or_404(Task, id=task_id, project=project)
 
-            task.title = request.POST.get('title').strip()
-            task.status = request.POST.get('status')
-            task.percent = float(request.POST.get('percent', 0))
-            task.weight = int(request.POST.get('weight', 1))
+            is_assignee = request.user in task.assignees.all()
+            is_manager_or_admin = request.user.role != "user"
+
+            if not is_assignee and not is_manager_or_admin:
+                return redirect(f"{request.path}?alert_class=err_alert_mo&message=شما دسترسی ویرایش ندارید")
+
+            if is_manager_or_admin:
+                new_status_val = request.POST.get('status')
+                if new_status_val:
+                    task.status = new_status_val
+
+            description_val = request.POST.get('description')
+            if description_val is not None:
+                task.description = description_val
+
+            percent_val = request.POST.get('percent')
+            if percent_val:
+                task.percent = float(percent_val)
+
+            if is_manager_or_admin:
+                weight_val = request.POST.get('weight')
+                if weight_val:
+                    task.weight = int(weight_val)
 
             deadline_shamsi = request.POST.get('deadline')
-
             if deadline_shamsi:
                 try:
                     date_parts = deadline_shamsi.replace('/', '-').split('-')
                     year = int(date_parts[0])
                     month = int(date_parts[1])
                     day = int(date_parts[2])
-
                     jalali_date = jdatetime.date(year, month, day)
-
-                    deadline = jalali_date.togregorian()
-
-                    task.deadline = deadline
+                    task.deadline = jalali_date.togregorian()
                 except (ValueError, IndexError):
                     pass
 
             task.save()
 
-            assignees_ids = request.POST.getlist('assignees')
-            task.assignees.set(assignees_ids) if assignees_ids else task.assignees.clear()
+            if is_manager_or_admin:
+                assignees_ids = request.POST.getlist('assignees')
+                if assignees_ids:
+                    task.assignees.set(assignees_ids)
+                else:
+                    task.assignees.clear()
 
-            if task.status != "not_started":
-                qu_pa = f"?status={task.status}"
-            else:
-                qu_pa = ""
-
-            return redirect(f"{request.path}{qu_pa}")
+            qu_pa = f"?status={task.status}" if task.status != "not_started" else ""
+            return redirect(
+                f"{request.path}?alert_class=success_alert_mo&message=تسک بروزرسانی شد{qu_pa.replace('?', '&') if qu_pa else ''}")
 
         title = request.POST.get('title', '').strip()
         weight = request.POST.get('weight', 1)
@@ -237,12 +295,15 @@ class TasksDetail(TemplateView):
             created_by=request.user
         )
 
+        if request.user.role == "user":
+            new_task.assignees.add(request.user)
+
         success_url = reverse('tasks_detail', kwargs={'pk': project.id, 'task_id': new_task.id})
         return redirect(f"{success_url}?status=not_started&alert_class=success_alert_mo&message=تسک ایجاد شد")
 
 
 class GetAllTaskView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, project_id):
         queryset = Task.objects.filter(project_id=project_id)
@@ -258,5 +319,9 @@ class GetAllTaskView(APIView):
             reverse=True
         )
 
-        serializer = GetAllTaskAPISerializer(tasks, many=True)
+        serializer = GetAllTaskAPISerializer(
+            tasks,
+            many=True,
+            context={'request': request}
+        )
         return Response(serializer.data)

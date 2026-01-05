@@ -2,6 +2,8 @@ from django.db.models import ProtectedError
 from django.shortcuts import redirect, get_object_or_404
 from django.views.generic import (TemplateView)
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+
 from web_project import TemplateLayout
 from config.utils import *
 
@@ -13,7 +15,7 @@ class TeamView(ManagerOnlyMixin, TemplateView):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
 
         User = get_user_model()
-        users = User.objects.all().exclude(id=self.request.user.id)
+        users = User.objects.all().exclude(id=self.request.user.id).exclude(is_superuser=True)
         teams = Team.objects.filter(members_teams=self.request.user)
 
         context['class_notification'] = self.request.GET.get('alert_class', 'none_alert_mo')
@@ -25,17 +27,27 @@ class TeamView(ManagerOnlyMixin, TemplateView):
     def post(self, request, *args, **kwargs):
         if 'delete_team_id' in request.POST:
             team_id = request.POST.get('delete_team_id')
+
             try:
                 Team.objects.get(id=team_id).delete()
-                return redirect(f"{request.path}?alert_class=success_alert_mo&message=تیم با موفقیت حذف شد")
-            except ProtectedError:
                 return redirect(
-                    f"{request.path}?alert_class=err_alert_mo&message=برای این تیم پروژه و تسک هایی تعریف شده است، برای حذف تیم ابتدا پروژه های آن را به سایر تیم ها منتقل کنید.")
+                    f"{request.path}?alert_class=success_alert_mo&message=تیم با موفقیت حذف شد"
+                )
 
+
+            except ValidationError:
+                return redirect(
+                    f"{request.path}?alert_class=err_alert_mo&message=برای این تیم پروژه‌هایی تعریف شده است. ابتدا پروژه‌ها را منتقل کنید."
+                )
         User = get_user_model()
         name = request.POST.get('team_name', '').strip()
         parent_team = request.POST.get('parent_team')
         members_id = request.POST.getlist('member_project', '')
+
+        superuser_ids = User.objects.filter(is_superuser=True).values_list('id', flat=True)
+        members_id = list(
+            set(map(str, members_id)) | set(map(str, superuser_ids))
+        )
 
         if not name:
             return redirect(f"{request.path}?alert_class=err_alert_mo&message=لطفاً فیلد نام را پر کنید.")
@@ -101,7 +113,7 @@ class UsersTableView(StaffRequiredMixin, TemplateView):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
 
         User = get_user_model()
-        users = User.objects.exclude(id=self.request.user.id)
+        users = User.objects.exclude(id=self.request.user.id).exclude(is_superuser=True)
 
         context['users'] = users
         return context

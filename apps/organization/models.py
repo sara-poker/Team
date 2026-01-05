@@ -143,7 +143,7 @@ class Task(models.Model):
         return self.assignees.count()
 
     def get_time_difference(self):
-        if self.deadline and self.status != 'completed':
+        if self.deadline and self.status not in ['completed','reviewing']:
             today = datetime.now().date()
             if self.deadline < today:
                 days_diff = (today - self.deadline).days

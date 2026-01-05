@@ -6,6 +6,7 @@ from apps.organization.models import *
 class GetAllTaskAPISerializer(serializers.ModelSerializer):
     priority = serializers.SerializerMethodField()
     time_difference = serializers.SerializerMethodField()
+    is_my_task = serializers.SerializerMethodField()
 
     class Meta:
         model = Task
@@ -15,6 +16,7 @@ class GetAllTaskAPISerializer(serializers.ModelSerializer):
             'weight',
             'priority',
             'time_difference',
+            'is_my_task',
         ]
 
     def get_priority(self, obj):
@@ -27,10 +29,15 @@ class GetAllTaskAPISerializer(serializers.ModelSerializer):
 
         days = diff.days
         if days > 0:
-            # return f"{days} روز گذشته"
             return days
         elif days < 0:
-            # return f"{abs(days)} روز مانده"
             return days
         return 0
+
+    def get_is_my_task(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+
+        return obj.assignees.filter(id=request.user.id).exists()
 

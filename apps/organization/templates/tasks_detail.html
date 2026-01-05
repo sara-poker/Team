@@ -3,7 +3,7 @@
 {% load i18n %}
 {% load jformat %}
 
-{% block title %}اپراتور ها{% endblock %}
+{% block title %}اطلاعات {{ task.title }}{% endblock %}
 
 {% block vendor_css %}
   {{ block.super }}
@@ -105,13 +105,38 @@
     .form-label {
       font-weight: 500;
     }
+
+    .my-task-row {
+      background-color: #f1f3f5 !important;
+      font-weight: 500;
+    }
+  </style>
+  <style>
+    .my-task-row {
+      background-color: rgba(115, 103, 240, 0.08) !important;
+      border-right: 3px solid #7367f0;
+    }
+
+    .my-task-row:hover {
+      background-color: rgba(115, 103, 240, 0.15) !important;
+    }
+
+    #my_tasks_table tbody tr {
+      transition: all 0.2s ease;
+    }
+
+    #my_tasks_table tbody tr:hover {
+      transform: translateX(-3px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
   </style>
 {% endblock page_css %}
 
 {% block page_js %}
   {{ block.super }}
+  <script src="{% static 'js/forms-pickers-jalali.js' %}"></script>
   <script>
-    $(function() {
+    function initMyTasksTable() {
       $('#flatpickr-deadline').flatpickr({
         locale: 'fa',
         altInput: true,
@@ -120,58 +145,126 @@
       });
 
       var table_element = $('#my_tasks_table');
-      if (table_element.length) {
-        var url1 = '/api/getAllTask/{{ project.id }}?status={{ qu_pa }}';
-        var url2 = '/projects/{{ project.id }}/tasks/';
-        table_element.DataTable({
-          ajax: { url: window.location.origin + url1, dataSrc: '' },
-          order: [],
-          language: { url: assetsPath + 'json/i18n/datatables-bs5/fa.json' },
-          columns: [
-            { data: 'title' },
-            { data: 'weight' },
-            {
-              data: 'time_difference',
-              render: function(data, type, full) {
-                let text = '', color = 'black';
-                if (data > 0) {
-                  text = data + ' روز گذشته';
-                  color = 'red';
-                } else if (data < 0) {
-                  text = Math.abs(data) + ' روز مانده';
-                  color = 'green';
-                } else {
-                  text = 'امروز';
-                }
-                return `<span style="color:${color}; font-weight:bold;">${text}</span>`;
+
+      if (!table_element.length) {
+        return;
+      }
+
+      if ($.fn.DataTable.isDataTable('#my_tasks_table')) {
+        $('#my_tasks_table').DataTable().destroy();
+      }
+
+      var url1 = '/api/getAllTask/{{ project.id }}?status={{ qu_pa }}';
+      var url2 = '/projects/{{ project.id }}/tasks/';
+
+      table_element.DataTable({
+        ajax: {
+          url: window.location.origin + url1,
+          dataSrc: ''
+        },
+
+        order: [],
+        retrieve: true,
+        destroy: true,
+
+        language: {
+          url: assetsPath + 'json/i18n/datatables-bs5/fa.json'
+        },
+
+        columns: [
+          { data: 'title' },
+          { data: 'weight' },
+          {
+            data: 'time_difference',
+            render: function(data, type, full, meta) {
+              var text = '';
+              var badgeClass = '';
+
+              if (data > 0) {
+                text = data + ' روز گذشته';
+                badgeClass = 'badge bg-label-danger';
+              } else if (data < 0) {
+                text = Math.abs(data) + ' روز مانده';
+                badgeClass = 'badge bg-label-success';
+              } else {
+                text = 'امروز';
+                badgeClass = 'badge bg-label-warning';
               }
+
+              return '<span class="' + badgeClass + '">' + text + '</span>';
             }
-          ],
-          responsive: true,
-          dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6 d-flex justify-content-end"f>>t<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
-          createdRow: function(row, data) {
-            $(row).on('click', function() {
-              window.location.href = url2 + data['id'] + '?status={{ qu_pa }}';
-            });
           }
-        });
-      }
+        ],
 
-      const percentRange = document.getElementById('taskPercent');
-      const percentOutput = document.getElementById('taskPercentValue');
-      if (percentRange && percentOutput) {
-        percentRange.addEventListener('input', function() {
-          percentOutput.textContent = this.value + '%';
-        });
-      }
+        responsive: true,
+        displayLength: 10,
+        lengthMenu: [10, 25, 50],
 
+        dom:
+          '<"row"<"col-sm-12 col-md-6"l>' +
+          '<"col-sm-12 col-md-6 d-flex justify-content-end"f>>' +
+          't' +
+          '<"row"<"col-sm-12 col-md-6"i>' +
+          '<"col-sm-12 col-md-6"p>>',
+
+        rowCallback: function(row, data, index) {
+          $(row).css('cursor', 'pointer');
+          $(row).removeClass('my-task-row other-task-row');
+
+          if (data.is_my_task === true) {
+            $(row).addClass('my-task-row');
+          } else {
+            $(row).addClass('other-task-row');
+          }
+        },
+
+        drawCallback: function() {
+          var api = this.api();
+
+          $('#my_tasks_table tbody tr').off('click').on('click', function() {
+            var data = api.row(this).data();
+            if (data) {
+              window.location.href = url2 + data.id + '/?status={{ qu_pa }}';
+            }
+          });
+        }
+      });
+    }
+
+    // اولین بار که صفحه لود می‌شه
+    $(document).ready(function() {
+      initMyTasksTable();
+    });
+
+    // وقتی با دکمه Back مرورگر برمی‌گردید (bfcache)
+    $(window).on('pageshow', function(event) {
+      if (event.originalEvent.persisted) {
+        initMyTasksTable();
+      }
+    });
+  </script>
+  <script>
+    $(function() {
+      // گرفتن آدرس کامل فعلی
       var currentUrl = window.location.pathname + window.location.search;
+
+      // پیدا کردن تمام لینک‌های داخل ناوبری
       $('#infoTabs .nav-link').each(function() {
-        if (currentUrl === $(this).attr('href')) {
+        var tabHref = $(this).attr('href');
+
+        // اگر آدرس فعلی شامل href این تب بود
+        if (currentUrl === tabHref) {
+          // اول همه رو از حالت active دربیار
           $('#infoTabs .nav-link').removeClass('active');
+          // این یکی رو active کن
           $(this).addClass('active');
         }
       });
+
+      // حالت رزرو: اگر هیچ تبی انتخاب نشد (مثلاً آدرس بدون پارامتر بود)
+      if ($('#infoTabs .nav-link.active').length === 0) {
+        $('#infoTabs .nav-link:first').addClass('active');
+      }
     });
   </script>
 {% endblock page_js %}
@@ -201,34 +294,34 @@
 
       <!-- Modal -->
       <div class="modal modal-top fade" id="modalTop" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <form method="POST">
-          {% csrf_token %}
-          <div class="modal-header">
-            <h5 class="modal-title">ایجاد تسک جدید برای {{ project.title }}</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <div class="row">
-              <div class="col-md-8 mb-3">
-                <label class="form-label">عنوان تسک</label>
-                <input type="text" name="title" class="form-control" placeholder="عنوان را بنویسید..." required>
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content">
+            <form method="POST">
+              {% csrf_token %}
+              <div class="modal-header">
+                <h5 class="modal-title">ایجاد تسک جدید برای {{ project.title }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
-              <div class="col-md-4 mb-3">
-                <label class="form-label">وزن تسک (۱ تا ۱۰)</label>
-                <input type="number" name="weight" class="form-control" min="1" max="10" value="1">
+              <div class="modal-body">
+                <div class="row">
+                  <div class="col-md-8 mb-3">
+                    <label class="form-label">عنوان تسک</label>
+                    <input type="text" name="title" class="form-control" placeholder="عنوان را بنویسید..." required>
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label">وزن تسک (۱ تا ۱۰)</label>
+                    <input type="number" name="weight" class="form-control" min="1" max="10" value="1">
+                  </div>
+                </div>
               </div>
-            </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">بستن</button>
+                <button type="submit" class="btn btn-primary">ثبت و مشاهده جزئیات</button>
+              </div>
+            </form>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">بستن</button>
-            <button type="submit" class="btn btn-primary">ثبت و مشاهده جزئیات</button>
-          </div>
-        </form>
+        </div>
       </div>
-    </div>
-  </div>
     </div>
   </div>
 
@@ -236,22 +329,22 @@
     <div class="col-md-12">
       <ul class="nav nav-pills flex-column flex-md-row mb-4" id="infoTabs">
         <li class="nav-item">
-          <a class="nav-link" href="/projects/{{ project.id }}/tasks/{{ task.id }}/">
+          <a class="nav-link" href="/projects/{{ project.id }}/tasks">
             <i class="ti ti-list-check ti-xs me-1"></i>اخیرا ایجاد شده
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/projects/{{ project.id }}/tasks/{{ task.id }}/?status=in_progress">
+          <a class="nav-link" href="/projects/{{ project.id }}/tasks?status=in_progress">
             <i class="ti ti-player-play ti-xs me-1"></i>در حال انجام
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/projects/{{ project.id }}/tasks/{{ task.id }}/?status=reviewing">
+          <a class="nav-link" href="/projects/{{ project.id }}/tasks?status=reviewing">
             <i class="ti ti-eye ti-xs me-1"></i>در حال بررسی مدیر
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/projects/{{ project.id }}/tasks/{{ task.id }}/?status=completed">
+          <a class="nav-link" href="/projects/{{ project.id }}/tasks?status=completed">
             <i class="ti ti-circle-check ti-xs me-1"></i>تکمیل شده
           </a>
         </li>
@@ -288,40 +381,74 @@
               <form id="taskForm" method="POST">
                 {% csrf_token %}
                 <div class="row g-3">
-                  <div class="col-12">
-                    <label class="form-label" for="title">عنوان تسک</label>
-                    <input name="title" class="form-control" id="title" type="text" value="{{ task.title }}" />
-                    <input type="hidden" name="task_id" value="{{ task.id }}">
+                  {% if request.user.role == "user" %}
+                    <div class="col-12">
+                      <label class="form-label" for="title">عنوان تسک</label>
+                      <input disabled name="title" class="form-control" id="title" type="text"
+                             value="{{ task.title }} " />
+                      <input type="hidden" name="task_id" value="{{ task.id }}">
+                    </div>
+                  {% else %}
+                    <div class="col-8">
+                      <label class="form-label" for="title">عنوان تسک</label>
+                      <input disabled name="title" class="form-control" id="title" type="text"
+                             value="{{ task.title }}" />
+                      <input type="hidden" name="task_id" value="{{ task.id }}">
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">وضعیت</label>
+                      <select name="status" class="select2 form-select">
+                        <option value="not_started" {% if task.status == 'not_started' %}selected{% endif %}>تازه اضافه
+                          شده
+                        </option>
+                        <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>در حال
+                          انجام
+                        </option>
+                        <option value="reviewing" {% if task.status == 'reviewing' %}selected{% endif %}>در حال بررسی
+                        </option>
+                        <option value="completed" {% if task.status == 'completed' %}selected{% endif %}>تکمیل شده
+                        </option>
+                      </select>
+                    </div>
+                  {% endif %}
+
+                  <div class="col-8">
+                    <label class="form-label" for="assigneesSelect">اعضای پروژه</label>
+                    <div class="select2-primary">
+                      <select class="select2 form-select" id="assigneesSelect" name="assignees" multiple
+                              {% if request.user.role == "user" %}disabled{% endif %}>
+                        {% for u in project.members.all %}
+                          {% if not u.is_superuser %}
+                            <option value="{{ u.id }}"
+                              {% if u in task.assignees.all %} selected {% endif %}>
+                              {% if u.get_full_name %}
+                                {{ u.get_full_name }}
+                              {% else %}
+                                {{ u.username }}
+                              {% endif %}
+                            </option>
+                          {% endif %}
+                        {% endfor %}
+                      </select>
+                    </div>
+                    <small class="text-muted">نفراتی که مسئول انجام این تسک هستند را انتخاب کنید.</small>
                   </div>
 
-                  <div class="col-md-6">
+                  <div class="col-md-4">
                     <label class="form-label">موعد تحویل (سررسید)</label>
-                    <input name="deadline" class="form-control" id="flatpickr-deadline" placeholder="{{ task.deadline|jformat:"%Y-%m-%d" }}"
+                    <input name="deadline" class="form-control" id="flatpickr-deadline"
+                           placeholder="{{ task.deadline|jformat:"%Y-%m-%d" }}"
                            type="text"
-                           value="{{ task.deadline|jformat:"%Y-%m-%d" }}" />
-                  </div>
-
-                  <div class="col-md-6">
-                    <label class="form-label">وضعیت</label>
-                    <select name="status" class="select2 form-select">
-                      <option value="not_started" {% if task.status == 'not_started' %}selected{% endif %}>تازه اضافه
-                        شده
-                      </option>
-                      <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>در حال
-                        انجام
-                      </option>
-                      <option value="reviewing" {% if task.status == 'reviewing' %}selected{% endif %}>در حال بررسی
-                      </option>
-                      <option value="completed" {% if task.status == 'completed' %}selected{% endif %}>تکمیل شده
-                      </option>
-                    </select>
+                           value="{{ task.deadline|jformat:"%Y-%m-%d" }}"
+                           {% if request.user.role == 'user' and request.user not in task.assignees.all %}disabled{% endif %} />
                   </div>
 
                   <div class="col-md-8">
                     <label class="form-label">درصد پیشرفت</label>
                     <div class="d-flex align-items-center">
                       <input type="range" class="form-range me-3" id="taskPercent" name="percent" min="0" max="100"
-                             value="{{ task.percent|default:0 }}" />
+                             value="{{ task.percent|default:0 }}"
+                             {% if request.user.role == 'user' and request.user not in task.assignees.all %}disabled{% endif %} />
                       <span class="fw-bold" id="taskPercentValue">{{ task.percent|default:0 }}%</span>
                     </div>
                   </div>
@@ -330,7 +457,8 @@
                     <label class="form-label">وزن تسک</label>
                     <div class="input-group">
                       <input type="number" class="form-control text-center" name="weight" min="1" max="10"
-                             value="{{ task.weight|default:1 }}" />
+                             value="{{ task.weight|default:1 }}"
+                             {% if request.user.role == 'user' and request.user not in task.assignees.all %}disabled{% endif %} />
                       <span class="input-group-text">۱–۱۰</span>
                     </div>
                   </div>
@@ -339,41 +467,34 @@
                 <hr class="my-4">
 
                 <div class="row g-3">
-                  <div class="col-12">
-                    <label class="form-label" for="assigneesSelect">اعضای پروژه</label>
-                    <div class="select2-primary">
-                      <select class="select2 form-select" id="assigneesSelect" name="assignees" multiple>
-                        {% for u in project.members.all %}
-                          <option value="{{ u.id }}"
-                            {% if u in task.assignees.all %} selected {% endif %}>
-                            {% if u.get_full_name %}
-                              {{ u.get_full_name }}
-                            {% else %}
-                              {{ u.username }}
-                            {% endif %}
-                          </option>
-                        {% endfor %}
-                      </select>
+                  <div class="col-md-12">
+                    <label for="taskDescription" class="form-label">توضیحات</label>
+                    <div class="input-group">
+        <textarea
+          class="form-control"
+          id="taskDescription"
+          name="description"
+          rows="3"
+          placeholder="توضیحات ....."
+          {% if request.user.role == 'user' and request.user not in task.assignees.all %}disabled{% endif %}
+        >{{ task.description }}</textarea>
                     </div>
-                    <small class="text-muted">نفراتی که مسئول انجام این تسک هستند را انتخاب کنید.</small>
                   </div>
 
                   <div class="col-md-6">
                     <div class="border rounded-2 p-3 h-100 bg-label-dark">
                       <small class="text-muted d-block mb-1">تاریخ شروع تسک </small>
                       <span class="fw-semibold">
-                                            {% if task.start_date %}{{ task.start_date|jformat:"%Y/%m/%d" }}{% else %}
-                                              تعیین نشده{% endif %}
-                                        </span>
+          {% if task.start_date %}{{ task.start_date|jformat:"%Y/%m/%d" }}{% else %}تعیین نشده{% endif %}
+        </span>
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="border rounded-2 p-3 h-100 bg-label-dark">
                       <small class="text-muted d-block mb-1">تاریخ پایان تسک</small>
                       <span class="fw-semibold">
-                                            {% if task.end_date %}{{ task.end_date|jformat:"%Y/%m/%d" }}{% else %}تعیین
-                                              نشده{% endif %}
-                                        </span>
+          {% if task.end_date %}{{ task.end_date|jformat:"%Y/%m/%d" }}{% else %}تعیین نشده{% endif %}
+        </span>
                     </div>
                   </div>
                 </div>
@@ -402,13 +523,42 @@
                 </div>
 
                 <div class="d-flex justify-content-end mt-4">
-                  <button class="btn btn-primary me-2" type="submit" name="update_task">به‌روزرسانی</button>
 
-                  <button class="btn btn-label-danger" type="submit" name="delete_task"
-                          onclick="return confirm('حذف شود؟')">حذف
-                  </button>
+                  {% if request.user.role == 'user' and request.user not in task.assignees.all %}
+                    <button class="btn btn-secondary me-2" disabled type="button">
+                      شما فقط دسترسی مشاهده دارید
+                    </button>
+                  {% else %}
+                    {% if task.status == "not_started" %}
+                      <button class="btn btn-warning me-2" type="submit" name="change_status" value="in_progress">
+                        شروع پروژه
+                      </button>
+                    {% endif %}
+
+                    {% if task.status == "in_progress" %}
+                      <button class="btn btn-linkedin me-2" type="submit" name="change_status" value="reviewing">
+                        پایان و ارسال به مدیر
+                      </button>
+                    {% endif %}
+
+                    {% if task.status == "reviewing" and request.user.role != "user" %}
+                      <button class="btn btn-linkedin me-2" type="submit" name="change_status" value="completed">
+                        پایان پروژه
+                      </button>
+                    {% endif %}
+
+                    <button class="btn btn-primary me-2" type="submit" name="update_task">به‌روزرسانی</button>
+
+                    {% if request.user.role != "user" or task.created_by == request.user %}
+                      <button class="btn btn-label-danger" type="submit" name="delete_task"
+                              onclick="return confirm('حذف شود؟')">حذف
+                      </button>
+                    {% endif %}
+                  {% endif %}
+
                 </div>
               </form>
+
             </div>
           </div>
         </div>

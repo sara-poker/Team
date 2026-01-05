@@ -3,7 +3,7 @@
 {% load static %}
 {% load i18n %}
 
-{% block title %}سک های {{ project.name }}{% endblock %}
+{% block title %}تسک های {{ project.title }}{% endblock %}
 
 {% block vendor_css %}
   {{ block.super }}
@@ -183,6 +183,11 @@
 
     .card {
     }
+
+    .my-task-row {
+      background-color: #f1f3f5 !important;
+      font-weight: 500;
+    }
   </style>
 {% endblock page_css %}
 
@@ -222,62 +227,125 @@
   <script src="{% static 'js/forms-pickers-jalali.js' %}"></script>
 
   <script>
-    $(function() {
-      // انتخاب جدول با ID جدید
-      var table_element = $('#my_tasks_table');
+  function initMyTasksTable() {
+    var table_element = $('#my_tasks_table');
 
-      if (table_element.length) {
-        var url1 = '/api/getAllTask/{{ project.id }}?status={{ qu_pa }}';
-        var url2 = '/projects/{{ project.id }}/tasks/';
+    if (!table_element.length) {
+      return;
+    }
 
-        var dt_basic = table_element.DataTable({
-          ajax: {
-            url: window.location.origin + url1,
-            dataSrc: '' // مطمئن شوید خروجی API شما یک Array مستقیم است
-          },
-          order: [],
-          language: {
-            url: assetsPath + 'json/i18n/datatables-bs5/fa.json'
-          },
-          columns: [
-            { data: 'title' },
-            { data: 'weight' },
-            {
-              data: 'time_difference',
-              render: function(data, type, full, meta) {
-                var text = '';
-                var color = 'black';
+    if ($.fn.DataTable.isDataTable('#my_tasks_table')) {
+      $('#my_tasks_table').DataTable().destroy();
+    }
 
-                if (data > 0) {
-                  text = data + ' روز گذشته';
-                  color = 'red';
-                } else if (data < 0) {
-                  text = Math.abs(data) + ' روز مانده';
-                  color = 'green';
-                } else {
-                  text = 'امروز';
-                  color = 'black';
-                }
-                return '<span style="color:' + color + '; font-weight:bold;">' + text + '</span>';
-              }
+    var url1 = '/api/getAllTask/{{ project.id }}?status={{ qu_pa }}';
+    var url2 = '/projects/{{ project.id }}/tasks/';
+
+    table_element.DataTable({
+      ajax: {
+        url: window.location.origin + url1,
+        dataSrc: ''
+      },
+
+      order: [],
+      retrieve: true,
+      destroy: true,
+
+      language: {
+        url: assetsPath + 'json/i18n/datatables-bs5/fa.json'
+      },
+
+      columns: [
+        { data: 'title' },
+        { data: 'weight' },
+        {
+          data: 'time_difference',
+          render: function(data, type, full, meta) {
+            var text = '';
+            var badgeClass = '';
+
+            if (data > 0) {
+              text = data + ' روز گذشته';
+              badgeClass = 'badge bg-label-danger';
+            } else if (data < 0) {
+              text = Math.abs(data) + ' روز مانده';
+              badgeClass = 'badge bg-label-success';
+            } else {
+              text = 'امروز';
+              badgeClass = 'badge bg-label-warning';
             }
-          ],
-          // تنظیمات دیگر
-          responsive: true,
-          displayLength: 10,
-          lengthMenu: [10, 25, 50],
-          dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6 d-flex justify-content-end"f>>t<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
 
-          createdRow: function(row, data, dataIndex) {
-            $(row).css('cursor', 'pointer');
-            $(row).on('click', function() {
-              window.location.href = url2 + data['id'] + '?status={{ qu_pa }}';
-            });
+            return '<span class="' + badgeClass + '">' + text + '</span>';
+          }
+        }
+      ],
+
+      responsive: true,
+      displayLength: 10,
+      lengthMenu: [10, 25, 50],
+
+      dom:
+        '<"row"<"col-sm-12 col-md-6"l>' +
+        '<"col-sm-12 col-md-6 d-flex justify-content-end"f>>' +
+        't' +
+        '<"row"<"col-sm-12 col-md-6"i>' +
+        '<"col-sm-12 col-md-6"p>>',
+
+      rowCallback: function(row, data, index) {
+        $(row).css('cursor', 'pointer');
+        $(row).removeClass('my-task-row other-task-row');
+
+        if (data.is_my_task === true) {
+          $(row).addClass('my-task-row');
+        } else {
+          $(row).addClass('other-task-row');
+        }
+      },
+
+      drawCallback: function() {
+        var api = this.api();
+
+        $('#my_tasks_table tbody tr').off('click').on('click', function() {
+          var data = api.row(this).data();
+          if (data) {
+            window.location.href = url2 + data.id + '/?status={{ qu_pa }}';
           }
         });
       }
     });
-  </script>
+  }
+
+  // اولین بار که صفحه لود می‌شه
+  $(document).ready(function() {
+    initMyTasksTable();
+  });
+
+  // وقتی با دکمه Back مرورگر برمی‌گردید (bfcache)
+  $(window).on('pageshow', function(event) {
+    if (event.originalEvent.persisted) {
+      initMyTasksTable();
+    }
+  });
+</script>
+  <style>
+    .my-task-row {
+      background-color: rgba(115, 103, 240, 0.08) !important;
+      border-right: 3px solid #7367f0;
+    }
+
+    .my-task-row:hover {
+      background-color: rgba(115, 103, 240, 0.15) !important;
+    }
+
+    #my_tasks_table tbody tr {
+      transition: all 0.2s ease;
+    }
+
+    #my_tasks_table tbody tr:hover {
+      transform: translateX(-3px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+  </style>
 
   <script>
     $(function() {
@@ -303,6 +371,8 @@
       }
     });
   </script>
+
+
 
 {% endblock page_js %}
 
