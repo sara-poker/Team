@@ -474,7 +474,7 @@
 
                     <button class="btn btn-primary me-2" type="submit" name="update_task">به‌روزرسانی</button>
 
-                    {% if request.user.role != "user" %}
+                    {% if request.user.role != "user" or task.created_by == request.user%}
                       <button class="btn btn-label-danger" type="submit" name="delete_task"
                               onclick="return confirm('حذف شود؟')">حذف
                       </button>

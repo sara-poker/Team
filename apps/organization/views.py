@@ -39,12 +39,12 @@ class ProjectsView(StaffRequiredMixin, TemplateView):
         teams = Team.objects.filter(members_teams=user).distinct()
 
         if user.role == 'manager':
-            users = User.objects.all().exclude(id=self.request.user.id).exclude(is_superuser = True)
+            users = User.objects.all().exclude(id=self.request.user.id).exclude(is_superuser=True)
 
         elif user.role == 'admin':
             users = User.objects.filter(
                 teams__in=teams
-            ).exclude(id=self.request.user.id).exclude(is_superuser = True).distinct()
+            ).exclude(id=self.request.user.id).exclude(is_superuser=True).distinct()
 
         else:
             users = User.objects.filter(id=user.id)
@@ -174,95 +174,118 @@ import jdatetime
 
 class TasksDetail(TemplateView):
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # فرض بر این است که TemplateLayout.init خروجی کانتکست را اصلاح می‌کند
-        context = TemplateLayout.init(self, context)
+        context = TemplateLayout.init(self, super().get_context_data(**kwargs))
 
         project = get_object_or_404(Project, id=self.kwargs['pk'])
         task = get_object_or_404(Task, id=self.kwargs['task_id'])
 
         qu_pa = self.request.GET.get('status', 'not_started')
 
-        # بررسی دسترسی برای نمایش در فرانت
-        is_assignee = task.assignees.filter(id=self.request.user.id).exists()
-        can_edit = True
-        if self.request.user.role == "user" and not is_assignee:
-            can_edit = False
+        context['class_notification'] = self.request.GET.get('alert_class', 'none_alert_mo')
+        context['message'] = self.request.GET.get('message', '')
+        context['project'] = project
+        context['qu_pa'] = qu_pa
+        context['task'] = task
 
-        context.update({
-            'class_notification': self.request.GET.get('alert_class', 'none_alert_mo'),
-            'message': self.request.GET.get('message', ''),
-            'project': project,
-            'qu_pa': qu_pa,
-            'task': task,
-            'can_edit': can_edit,
-        })
+        context['user_role'] = self.request.user.role
+
         return context
 
     def post(self, request, *args, **kwargs):
         project = get_object_or_404(Project, id=self.kwargs['pk'])
-        task_id = request.POST.get('task_id')
-        task = get_object_or_404(Task, id=task_id, project=project)
 
-        # ۱. بررسی سطح دسترسی امنیتی
-        is_assignee = task.assignees.filter(id=request.user.id).exists()
-        if request.user.role == "user" and not is_assignee:
-            return redirect(f"{request.path}?alert_class=err_alert_mo&message=شما دسترسی ویرایش این تسک را ندارید")
-
-        # ۲. عملیات تغییر وضعیت سریع
         if 'change_status' in request.POST:
+            task_id = request.POST.get('task_id')
+            task = get_object_or_404(Task, id=task_id, project=project)
+
             new_status = request.POST.get('change_status')
             if new_status:
                 task.status = new_status
+
                 if new_status == "in_progress":
                     task.start_date = timezone.now().date()
                 elif new_status == "reviewing":
                     task.end_date = timezone.now().date()
+
                 task.save()
 
             qu_pa = f"?status={task.status}" if task.status != "not_started" else ""
             return redirect(f"{request.path}{qu_pa}")
 
-        # ۳. حذف تسک
-        if 'delete_task' in request.POST and request.user.role != "user":
+        if 'delete_task' in request.POST:
+            task_id = request.POST.get('task_id')
+            task = get_object_or_404(Task, id=task_id, project=project)
+
+            if request.user.role == "user" and task.created_by != request.user:
+                return redirect(f"{request.path}?alert_class=err_alert_mo&message=شما اجازه حذف این تسک را ندارید")
+
+            task_id = request.POST.get('task_id')
+            task = get_object_or_404(Task, id=task_id, project=project)
             task.delete()
-            return redirect(reverse('tasks_project', kwargs={'pk': project.id}))
+            success_delete_url = reverse('tasks_project', kwargs={'pk': project.id})
+            return redirect(f"{success_delete_url}?alert_class=success_alert_mo&message=تسک با موفقیت حذف شد")
 
-        # ۴. به‌روزرسانی کلی (جلوگیری از ارور NotNullViolation)
         if 'update_task' in request.POST:
-            # فقط اگر مقدار در POST بود تغییر بده، در غیر این صورت مقدار قبلی رو نگه دار
-            task.status = request.POST.get('status') or task.status
-            task.description = request.POST.get('description') or task.description
+            task_id = request.POST.get('task_id')
+            task = get_object_or_404(Task, id=task_id, project=project)
 
-            if request.POST.get('percent'):
-                task.percent = float(request.POST.get('percent'))
+            new_status_val = request.POST.get('status')
+            if new_status_val:
+                task.status = new_status_val
 
-            if request.POST.get('weight'):
-                task.weight = int(request.POST.get('weight'))
+            description_val = request.POST.get('description')
+            if description_val is not None:
+                task.description = description_val
+
+            percent_val = request.POST.get('percent')
+            if percent_val:
+                task.percent = float(percent_val)
+
+            weight_val = request.POST.get('weight')
+            if weight_val:
+                task.weight = int(weight_val)
 
             deadline_shamsi = request.POST.get('deadline')
             if deadline_shamsi:
                 try:
                     date_parts = deadline_shamsi.replace('/', '-').split('-')
-                    jalali_date = jdatetime.date(int(date_parts[0]), int(date_parts[1]), int(date_parts[2]))
+                    year = int(date_parts[0])
+                    month = int(date_parts[1])
+                    day = int(date_parts[2])
+                    jalali_date = jdatetime.date(year, month, day)
                     task.deadline = jalali_date.togregorian()
                 except (ValueError, IndexError):
                     pass
 
             task.save()
 
-            # آپدیت لیست مسئولین (فقط برای مدیران یا در صورت ارسال فیلد)
             assignees_ids = request.POST.getlist('assignees')
             if assignees_ids:
                 task.assignees.set(assignees_ids)
-            elif request.user.role != "user":
-                # اگر مدیر بود و لیست خالی فرستاد، پاک کن. اگر کاربر عادی بود و لیست نیومد، دست نزن.
+            else:
                 task.assignees.clear()
 
             qu_pa = f"?status={task.status}" if task.status != "not_started" else ""
             return redirect(f"{request.path}{qu_pa}")
 
-        return redirect(request.path)
+        title = request.POST.get('title', '').strip()
+        weight = request.POST.get('weight', 1)
+
+        if not title:
+            return redirect(f"{request.path}?alert_class=err_alert_mo&message=عنوان نمی‌تواند خالی باشد")
+
+        new_task = Task.objects.create(
+            title=title,
+            weight=int(weight),
+            project=project,
+            created_by=request.user
+        )
+
+        if request.user.role == "user":
+            new_task.assignees.add(request.user)
+
+        success_url = reverse('tasks_detail', kwargs={'pk': project.id, 'task_id': new_task.id})
+        return redirect(f"{success_url}?status=not_started&alert_class=success_alert_mo&message=تسک ایجاد شد")
 
 
 class GetAllTaskView(APIView):
