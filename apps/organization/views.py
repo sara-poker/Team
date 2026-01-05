@@ -38,12 +38,12 @@ class ProjectsView(StaffRequiredMixin, TemplateView):
         teams = Team.objects.filter(members_teams=user).distinct()
 
         if user.role == 'manager':
-            users = User.objects.all().exclude(id=self.request.user.id).exclude(username="admin1")
+            users = User.objects.all().exclude(id=self.request.user.id).exclude(is_superuser = True)
 
         elif user.role == 'admin':
             users = User.objects.filter(
                 teams__in=teams
-            ).exclude(id=self.request.user.id).exclude(username="admin1").distinct()
+            ).exclude(id=self.request.user.id).exclude(is_superuser = True).distinct()
 
         else:
             users = User.objects.filter(id=user.id)
@@ -57,6 +57,7 @@ class ProjectsView(StaffRequiredMixin, TemplateView):
         return context
 
     def post(self, request, *args, **kwargs):
+        User = get_user_model()
 
         if 'delete_project_id' in request.POST:
             project_id = request.POST.get('delete_project_id')
@@ -80,8 +81,13 @@ class ProjectsView(StaffRequiredMixin, TemplateView):
 
         title = request.POST.get('project_title', '').strip()
         teams_id = request.POST.getlist('teams_project', '')
-        members_id = request.POST.getlist('member_project', '')
+        members_id = request.POST.getlist('member_project', [])
         description = request.POST.get('description', '')
+
+        superuser_ids = User.objects.filter(is_superuser=True).values_list('id', flat=True)
+        members_id = list(
+            set(map(str, members_id)) | set(map(str, superuser_ids))
+        )
 
         if not title:
             return redirect(f"{request.path}?alert_class=err_alert_mo&message=لطفاً عنوان پروژه را وارد کنید.")

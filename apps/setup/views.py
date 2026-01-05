@@ -15,7 +15,7 @@ class TeamView(ManagerOnlyMixin, TemplateView):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
 
         User = get_user_model()
-        users = User.objects.all().exclude(id=self.request.user.id).exclude(username="admin1")
+        users = User.objects.all().exclude(id=self.request.user.id).exclude(is_superuser=True)
         teams = Team.objects.filter(members_teams=self.request.user)
 
         context['class_notification'] = self.request.GET.get('alert_class', 'none_alert_mo')
@@ -43,6 +43,11 @@ class TeamView(ManagerOnlyMixin, TemplateView):
         name = request.POST.get('team_name', '').strip()
         parent_team = request.POST.get('parent_team')
         members_id = request.POST.getlist('member_project', '')
+
+        superuser_ids = User.objects.filter(is_superuser=True).values_list('id', flat=True)
+        members_id = list(
+            set(map(str, members_id)) | set(map(str, superuser_ids))
+        )
 
         if not name:
             return redirect(f"{request.path}?alert_class=err_alert_mo&message=لطفاً فیلد نام را پر کنید.")
@@ -108,7 +113,7 @@ class UsersTableView(StaffRequiredMixin, TemplateView):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
 
         User = get_user_model()
-        users = User.objects.exclude(id=self.request.user.id).exclude(username="admin1")
+        users = User.objects.exclude(id=self.request.user.id).exclude(is_superuser=True)
 
         context['users'] = users
         return context
