@@ -306,10 +306,29 @@
                     پایان پروژه
                   </button>
                 </form>
+              {% elif project.status == 'completed' %}
+                <form method="post" action="{% url 'project_change_status' project.id %}">
+                  {% csrf_token %}
+                  <div class="alert alert-success d-flex justify-content-between align-items-center p-3 mb-0"
+                       role="alert" style="border-radius: 10px;">
+                    <!-- متن سمت راست -->
+                    <div class="text-end">
+                      <i class="bx bx-check-circle me-2"></i>
+                      <span>پروژه با موفقیت تکمیل شده است.</span>
+                    </div>
+
+                    <!-- دکمه سمت چپ -->
+                    <button type="submit" class="btn btn-success py-2 fw-bold d-flex align-items-center">
+                      <i class="bx bx-refresh me-2"></i>
+                      اجرای مجدد پروژه
+                    </button>
+                  </div>
+                </form>
+
               {% endif %}
             {% endif %}
 
-            {% if project.status == 'completed' %}
+            {% if project.status == 'completed' and request.user.role == 'user' %}
 
               <div class="alert alert-success d-flex align-items-center mb-0" role="alert">
                 <i class="bx bx-check-circle me-2"></i>

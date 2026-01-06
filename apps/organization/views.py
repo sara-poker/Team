@@ -163,12 +163,21 @@ class ProjectChangeStatusView(View):
         project = get_object_or_404(Project, pk=pk)
 
         status_flow = ['not_started', 'in_progress', 'completed']
-        current_index = status_flow.index(project.status)
 
-        if current_index < len(status_flow) - 1:
-            project.status = status_flow[current_index + 1]
-            project.save()
+        if project.status == 'completed':
+            project.status = 'in_progress'
+            project.end_date = None
+        else:
+            current_index = status_flow.index(project.status)
+            if project.status == 'not_started':
+                project.start_date = timezone.now().date()
+            elif project.status == 'in_progress':
+                project.end_date = timezone.now().date()
 
+            if current_index < len(status_flow) - 1:
+                project.status = status_flow[current_index + 1]
+
+        project.save()
         return redirect(reverse('projects_detail', args=[pk]))
 
 
