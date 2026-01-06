@@ -108,6 +108,128 @@
 
     });
   </script>
+
+  <script>
+    const PROJECT_ID = {{ project.id }};
+    const CSRF_TOKEN = '{{ csrf_token }}';
+
+    {% if request.user.role in 'admin manager' %}
+      const CAN_MANAGE_MEMBERS = true;
+    {% else %}
+      const CAN_MANAGE_MEMBERS = false;
+    {% endif %}
+  </script>
+
+  <script>
+    $(function() {
+
+      const table = $('.datatables-basic-members').DataTable({
+        ajax: '{% url "project_members_api" project.id %}',
+        language: {
+          url: assetsPath + 'json/i18n/datatables-bs5/fa.json'
+        },
+        searching: false,
+        paging: false,
+        ordering: false,
+        info: false,
+
+        columns: [
+          {
+            data: 'full_name',
+            render: function(data, type, row) {
+              return `
+              <div class="d-flex align-items-center">
+                <img src="${assetsPath}img/avatars/${row.avatar}"
+                     class="rounded-circle me-2"
+                     width="38">
+                <div>
+                  <div class="fw-semibold">${data}</div>
+                  <small class="text-muted">${row.role}</small>
+                </div>
+              </div>
+            `;
+            }
+          },
+          { data: 'username' },
+          { data: 'tasks_count' },
+          {
+            data: null,
+            className: 'text-center',
+            orderable: false,
+            searchable: false,
+            render: function(data, type, full) {
+
+              if (!CAN_MANAGE_MEMBERS) {
+                return '';
+              }
+
+              return `
+              <button
+                class="btn btn-sm btn-icon text-danger remove-member-btn"
+                data-user-id="${full.id}"
+                data-user-name="${full.full_name}">
+                <i class="ti ti-trash"></i>
+              </button>
+            `;
+            }
+          }
+        ]
+      });
+
+      /* ============================
+         حذف عضو (Modal)
+      ============================ */
+
+      let selectedUserId = null;
+
+      $(document).on('click', '.remove-member-btn', function() {
+        selectedUserId = $(this).data('user-id');
+        const userName = $(this).data('user-name');
+
+        $('#remove-member-name').text(userName);
+        $('#removeMemberModal').modal('show');
+      });
+
+      $('#confirmRemoveMember').on('click', function() {
+        if (!selectedUserId) return;
+
+        $.ajax({
+          url: `/projects/${PROJECT_ID}/members/remove/${selectedUserId}/`,
+          type: 'POST',
+          headers: {
+            'X-CSRFToken': CSRF_TOKEN
+          },
+          success: function() {
+            $('#removeMemberModal').modal('hide');
+            table.ajax.reload(null, false);
+          },
+          error: function() {
+            alert('خطا در حذف عضو پروژه');
+          }
+        });
+      });
+
+      /* ============================
+         افزودن عضو
+      ============================ */
+
+      $('#addMemberBtn').on('click', function() {
+
+        if (!CAN_MANAGE_MEMBERS) return;
+
+        $.post(`/projects/${PROJECT_ID}/members/add/`, {
+          user_id: $('#userSelect').val(),
+          csrfmiddlewaretoken: CSRF_TOKEN
+        }, function() {
+          table.ajax.reload(null, false);
+          bootstrap.Offcanvas.getInstance(
+            document.getElementById('addMemberCanvas')
+          ).hide();
+        });
+      });
+
+    });
+  </script>
 {% endblock page_js %}
 
 {% block content %}
@@ -251,6 +373,94 @@
     </div>
 
   </div>
+
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">اعضای پروژه</h5>
+
+          {% if request.user.role != "user" %}
+            <button class="btn btn-primary"
+                    data-bs-toggle="offcanvas"
+                    data-bs-target="#addMemberCanvas">
+              <i class="ti ti-plus"></i>
+              افزودن عضو
+            </button>
+          {% endif %}
+        </div>
+
+        <div class="card-datatable table-responsive">
+          <table class="table datatables-basic-members">
+            <thead>
+            <tr>
+              <th>کاربر</th>
+              <th>نام کاربری</th>
+              <th>تعداد تسک‌ها</th>
+              <th class="text-center">عملیات</th>
+            </tr>
+            </thead>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="offcanvas offcanvas-end" id="addMemberCanvas">
+    <div class="offcanvas-header">
+      <h5>افزودن عضو به پروژه</h5>
+      <button class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body">
+      <select id="userSelect" class="form-select mb-3">
+        {% for user in users %}
+          <option value="{{ user.id }}">
+            {{ user.get_full_name }} ({{ user.username }})
+          </option>
+        {% endfor %}
+      </select>
+
+      <button class="btn btn-success w-100" id="addMemberBtn">
+        افزودن به پروژه
+      </button>
+    </div>
+  </div>
+
+
+  <div class="modal fade" id="removeMemberModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <h5 class="modal-title">حذف عضو پروژه</h5>
+          <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <p class="mb-1">
+            آیا از حذف این کاربر از پروژه مطمئن هستید؟
+          </p>
+          <strong id="remove-member-name" class="text-danger"></strong>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            انصراف
+          </button>
+          <button class="btn btn-danger" id="confirmRemoveMember">
+            حذف
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+
+
 
 {% endblock %}
 

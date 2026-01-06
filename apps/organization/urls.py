@@ -31,5 +31,20 @@ urlpatterns = [
         "api/getAllTask/<int:project_id>",
         GetAllTaskView.as_view(),
         name="get_all_tast"
+    ),
+    path(
+        'projects/<int:project_id>/members/',
+        project_members_api,
+        name='project_members_api'
+    ),
+    path(
+        'projects/<int:project_id>/members/add/',
+        add_project_member,
+        name='add_project_member'
+    ),
+    path(
+        'projects/<int:project_id>/members/remove/<int:user_id>/',
+        remove_project_member,
+        name='remove_project_member'
     )
 ]

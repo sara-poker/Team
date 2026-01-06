@@ -1,9 +1,12 @@
 from django.views.generic import (TemplateView)
 from django.contrib.auth import get_user_model
-from django.db.models import ProtectedError
+from django.db.models import ProtectedError, Count, Q
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse
 from django.views import View
+from django.http import JsonResponse, HttpResponseForbidden
+
+from django.contrib.auth.decorators import login_required
 
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
@@ -115,11 +118,28 @@ class ProjectsView(StaffRequiredMixin, TemplateView):
 
         return redirect(f"{request.path}?alert_class=success_alert_mo&message=پروژه با موفقیت ثبت شد")
 
+
 class ProjectDetail(TemplateView):
     template_name = 'project/detail.html'
 
     def get_context_data(self, **kwargs):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
+        User = get_user_model()
+        user = self.request.user
+
+        teams = Team.objects.filter(members_teams=user).distinct()
+
+        if user.role == 'manager':
+            users = User.objects.all().exclude(is_superuser=True)
+
+        elif user.role == 'admin':
+            users = User.objects.filter(
+                teams__in=teams
+            ).exclude(role="manager").exclude(is_superuser=True).distinct()
+
+        else:
+            users = []
+
         project = get_object_or_404(Project, id=self.kwargs['pk'])
 
         tasks = project.task_set.all()
@@ -132,9 +152,11 @@ class ProjectDetail(TemplateView):
             'task_in_progress': tasks.filter(status='in_progress').count(),
             'task_reviewing': tasks.filter(status='reviewing').count(),
             'task_completed': tasks.filter(status='completed').count(),
+            'users': users
         })
 
         return context
+
 
 class ProjectChangeStatusView(View):
     def post(self, request, pk):
@@ -148,6 +170,7 @@ class ProjectChangeStatusView(View):
             project.save()
 
         return redirect(reverse('projects_detail', args=[pk]))
+
 
 class TasksProjectDetail(TemplateView):
     def get_context_data(self, **kwargs):
@@ -187,6 +210,7 @@ class TasksProjectDetail(TemplateView):
         except Exception as e:
             return redirect(f"{request.path}?alert_class=err_alert_mo&message=خطایی در ثبت تسک رخ داد")
 
+
 class TasksDetail(TemplateView):
     def get_context_data(self, **kwargs):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
@@ -195,7 +219,6 @@ class TasksDetail(TemplateView):
         task = get_object_or_404(Task, id=self.kwargs['task_id'])
 
         qu_pa = self.request.GET.get('status', 'not_started')
-
 
         context['class_notification'] = self.request.GET.get('alert_class', 'none_alert_mo')
         context['message'] = self.request.GET.get('message', '')
@@ -349,3 +372,63 @@ class GetAllTaskView(APIView):
             context={'request': request}
         )
         return Response(serializer.data)
+
+
+@login_required
+def project_members_api(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+
+    members = (
+        project.members
+        .annotate(
+            tasks_count=Count(
+                'members_tasks',
+                filter=Q(members_tasks__project=project),
+                distinct=True
+            )
+        )
+    )
+
+    data = []
+    for user in members:
+        data.append({
+            'id': user.id,
+            'full_name': f'{user.first_name} {user.last_name}'.strip(),
+            'username': user.username,
+            'role': getattr(user, 'role', ''),
+            'tasks_count': user.tasks_count,
+            'avatar': f'{user.username}.png'
+        })
+
+    return JsonResponse({'data': data})
+
+
+@login_required
+def remove_project_member(request, project_id, user_id):
+    User = get_user_model()
+    project = get_object_or_404(Project, id=project_id)
+
+    if not can_manage_project_members(request.user, project):
+        return HttpResponseForbidden('Access denied')
+
+    user = get_object_or_404(User, id=user_id)
+
+    project.members.remove(user)
+
+    return JsonResponse({'status': 'ok'})
+
+
+@login_required
+def add_project_member(request, project_id):
+    User = get_user_model()
+    project = get_object_or_404(Project, id=project_id)
+
+    if not can_manage_project_members(request.user, project):
+        return HttpResponseForbidden('Access denied')
+
+    user_id = request.POST.get('user_id')
+    user = get_object_or_404(User, id=user_id)
+
+    project.members.add(user)
+
+    return JsonResponse({'status': 'ok'})
