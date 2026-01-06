@@ -2,6 +2,7 @@
 
 {% load static %}
 {% load i18n %}
+{% load jformat %}
 
 {% block title %}تیم {{ team.name }}{% endblock %}
 
@@ -86,43 +87,520 @@
       });
     });
   </script>
+
+<script>
+  const TEAM_ID = {{ team.id }};
+  const CSRF_TOKEN = '{{ csrf_token }}';
+
+  {% if request.user.role in 'manager' %}
+    const CAN_MANAGE_MEMBERS = true;
+  {% else %}
+    const CAN_MANAGE_MEMBERS = false;
+  {% endif %}
+</script>
+
+<script>
+$(function() {
+
+  /* ============================================
+     جدول پروژه‌های تیم
+  ============================================ */
+  const projectsTable = $('.datatables-team-projects').DataTable({
+    ajax: '{% url "team_projects_api" team.id %}',
+    language: {
+      url: assetsPath + 'json/i18n/datatables-bs5/fa.json'
+    },
+    columns: [
+      { data: '' },
+      { data: 'title' },
+      { data: 'members' },
+      { data: 'status' },
+      { data: 'progress' }
+    ],
+    columnDefs: [
+      {
+        // For Responsive
+        className: 'control',
+        searchable: false,
+        orderable: false,
+        responsivePriority: 2,
+        targets: 0,
+        render: function() {
+          return '';
+        }
+      },
+      {
+        // نام پروژه
+        targets: 1,
+        responsivePriority: 1,
+        render: function(data, type, row) {
+          return `
+            <a href="/projects/${row.id}/" class="fw-medium text-heading">
+              ${data}
+            </a>
+          `;
+        }
+      },
+      {
+        // نفرات با تولتیپ
+        targets: 2,
+        orderable: false,
+        searchable: false,
+        render: function(data, type, row) {
+          if (!data || data.length === 0) {
+            return '<span class="text-muted">بدون عضو</span>';
+          }
+
+          let output = '<div class="d-flex align-items-center avatar-group">';
+
+          data.forEach(function(member) {
+            output += `
+              <div class="avatar avatar-sm"
+                   data-bs-toggle="tooltip"
+                   data-bs-placement="top"
+                   title="${member.full_name}">
+                <img src="${assetsPath}img/avatars/${member.avatar}"
+                     alt="${member.full_name}"
+                     class="rounded-circle pull-up"
+                     onerror="this.src='${assetsPath}img/avatars/default.png'">
+              </div>
+            `;
+          });
+
+          // اگر بیشتر از 5 نفر بودند
+          if (row.total_members > 5) {
+            output += `
+              <div class="avatar avatar-sm">
+                <span class="avatar-initial rounded-circle pull-up bg-label-secondary"
+                      data-bs-toggle="tooltip"
+                      title="${row.total_members - 5} نفر دیگر">
+                  +${row.total_members - 5}
+                </span>
+              </div>
+            `;
+          }
+
+          output += '</div>';
+          return output;
+        }
+      },
+      {
+        // وضعیت پروژه - برچسب رنگی
+        targets: 3,
+        render: function(data, type, row) {
+          const statusConfig = {
+            'not_started': { class: 'bg-label-warning', text: 'شروع نشده' },
+            'in_progress': { class: 'bg-label-success', text: 'در حال انجام' },
+            'completed': { class: 'bg-label-danger', text: 'پایان یافته' }
+          };
+
+          const config = statusConfig[data] || { class: 'bg-label-secondary', text: data };
+
+          return `<span class="badge ${config.class}">${config.text}</span>`;
+        }
+      },
+      {
+        // درصد پیشرفت با نوار رنگی
+        targets: 4,
+        render: function(data, type, row) {
+          const progress = parseFloat(data) || 0;
+
+          // تعیین رنگ بر اساس درصد
+          let progressClass = '';
+          if (progress < 25) {
+            progressClass = 'bg-danger';
+          } else if (progress < 70) {
+            progressClass = 'bg-warning';
+          } else {
+            progressClass = 'bg-success';
+          }
+
+          return `
+            <div class="d-flex align-items-center">
+              <div class="progress w-100 me-3" style="height: 8px;">
+                <div class="progress-bar ${progressClass}"
+                     role="progressbar"
+                     style="width: ${progress}%"
+                     aria-valuenow="${progress}"
+                     aria-valuemin="0"
+                     aria-valuemax="100">
+                </div>
+              </div>
+              <span class="text-heading fw-medium">${progress}%</span>
+            </div>
+          `;
+        }
+      }
+    ],
+    order: [[1, 'asc']],
+    dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6 d-flex justify-content-center justify-content-md-end"f>>t<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
+    displayLength: 5,
+    lengthMenu: [5, 10, 25, 50],
+    responsive: {
+      details: {
+        display: $.fn.dataTable.Responsive.display.modal({
+          header: function(row) {
+            var data = row.data();
+            return 'جزئیات پروژه "' + data['title'] + '"';
+          }
+        }),
+        type: 'column',
+        renderer: function(api, rowIdx, columns) {
+          var data = $.map(columns, function(col, i) {
+            return col.title !== ''
+              ? '<tr data-dt-row="' + col.rowIndex + '" data-dt-column="' + col.columnIndex + '">' +
+                '<td>' + col.title + ':</td> ' +
+                '<td>' + col.data + '</td>' +
+                '</tr>'
+              : '';
+          }).join('');
+
+          return data ? $('<table class="table"/><tbody />').append(data) : false;
+        }
+      }
+    },
+    drawCallback: function() {
+      // Initialize tooltips after each draw
+      var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+      tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+      });
+    }
+  });
+
+  /* ============================================
+     جدول اعضای تیم
+  ============================================ */
+  const membersTable = $('.datatables-team-members').DataTable({
+    ajax: '{% url "team_members_api" team.id %}',
+    language: {
+      url: assetsPath + 'json/i18n/datatables-bs5/fa.json'
+    },
+    searching: false,
+    paging: true,
+    ordering: true,
+    info: true,
+    displayLength: 10,
+
+    columns: [
+      {
+        data: 'full_name',
+        render: function(data, type, row) {
+          return `
+            <div class="d-flex align-items-center">
+              <img src="${assetsPath}img/avatars/${row.avatar}"
+                   class="rounded-circle me-2"
+                   width="38" height="38"
+                   alt="${data}"
+                   onerror="this.src='${assetsPath}img/avatars/default.png'">
+              <div>
+                <div class="fw-semibold">${data}</div>
+                <small class="text-muted">${row.role_display || row.role}</small>
+              </div>
+            </div>
+          `;
+        }
+      },
+      { data: 'username' },
+      {
+        data: 'tasks_count',
+        className: 'text-center',
+        render: function(data) {
+          return `<span class="badge bg-label-primary rounded-pill">${data}</span>`;
+        }
+      },
+      {
+        data: null,
+        className: 'text-center',
+        orderable: false,
+        searchable: false,
+        render: function(data, type, full) {
+          if (!CAN_MANAGE_MEMBERS) {
+            return '<span class="text-muted">-</span>';
+          }
+
+          return `
+            <button class="btn btn-sm btn-icon text-danger remove-member-btn"
+                    data-user-id="${full.id}"
+                    data-user-name="${full.full_name}"
+                    data-bs-toggle="tooltip"
+                    title="حذف از تیم">
+              <i class="ti ti-trash"></i>
+            </button>
+          `;
+        }
+      }
+    ],
+    drawCallback: function() {
+      var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+      tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+      });
+    }
+  });
+
+  /* ============================================
+     حذف عضو (Modal)
+  ============================================ */
+  let selectedUserId = null;
+
+  $(document).on('click', '.remove-member-btn', function() {
+    selectedUserId = $(this).data('user-id');
+    const userName = $(this).data('user-name');
+
+    $('#remove-member-name').text(userName);
+    $('#removeMemberModal').modal('show');
+  });
+
+  $('#confirmRemoveMember').on('click', function() {
+    if (!selectedUserId) return;
+
+    const btn = $(this);
+    btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+    $.ajax({
+      url: `/teams/${TEAM_ID}/members/remove/${selectedUserId}/`,
+      type: 'POST',
+      headers: { 'X-CSRFToken': CSRF_TOKEN },
+      success: function() {
+        $('#removeMemberModal').modal('hide');
+        membersTable.ajax.reload(null, false);
+
+        // نمایش پیام موفقیت
+        toastr.success('عضو با موفقیت حذف شد');
+      },
+      error: function(xhr) {
+        toastr.error('خطا در حذف عضو تیم');
+      },
+      complete: function() {
+        btn.prop('disabled', false).html('<i class="ti ti-trash me-1"></i> حذف');
+        selectedUserId = null;
+      }
+    });
+  });
+
+  /* ============================================
+     افزودن عضو
+  ============================================ */
+  $('#addMemberBtn').on('click', function() {
+    if (!CAN_MANAGE_MEMBERS) return;
+
+    const userId = $('#userSelect').val();
+    if (!userId) {
+      toastr.warning('لطفاً یک کاربر انتخاب کنید');
+      return;
+    }
+
+    const btn = $(this);
+    btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+    $.post(`/teams/${TEAM_ID}/members/add/`, {
+      user_id: userId,
+      csrfmiddlewaretoken: CSRF_TOKEN
+    })
+    .done(function() {
+      membersTable.ajax.reload(null, false);
+      bootstrap.Offcanvas.getInstance(
+        document.getElementById('addMemberCanvas')
+      ).hide();
+
+      // حذف کاربر اضافه شده از لیست
+      $(`#userSelect option[value="${userId}"]`).remove();
+      $('#userSelect').val('');
+
+      toastr.success('عضو با موفقیت اضافه شد');
+    })
+    .fail(function() {
+      toastr.error('خطا در افزودن عضو به تیم');
+    })
+    .always(function() {
+      btn.prop('disabled', false).html('<i class="ti ti-plus me-1"></i> افزودن به تیم');
+    });
+  });
+
+  /* ============================================
+     تنظیمات فرم فیلتر
+  ============================================ */
+  setTimeout(() => {
+    $('.dataTables_filter .form-control').removeClass('form-control-sm');
+    $('.dataTables_length .form-select').removeClass('form-select-sm');
+  }, 300);
+
+});
+</script>
 {% endblock page_js %}
 
 {% block content %}
-  <h4 class="py-3 mb-4">
-    <span class="text-muted fw-light">  تیم ها /</span> تیم {{ team.name }}
+<div class="container-fluid flex-grow-1 container-p-y">
 
-  </h4>
+  <div class="row g-4 align-items-stretch"> <div class="col-12 col-xl-5 d-flex flex-column gap-4">
 
+    <div class="card">
+      <div class="card-body">
 
-  <div id="alert_mo" class="alert alert-dark alert-dismissible {{ class_notification }}" role="alert">{{ message }}
-    <button aria-label="بستن" class="btn-close" data-bs-dismiss="alert" type="button"></button>
+        <div class="d-flex flex-column align-items-center text-center">
+          <h4 class="mb-1">{{ team.name }}</h4>
+          {% if team.parent %}
+            <span class="badge bg-label-secondary mt-1">
+              زیرمجموعه: {{ team.parent.name }}
+            </span>
+          {% endif %}
+        </div>
+
+        <div class="divider my-4">
+          <div class="divider-text">جزئیات تیم</div>
+        </div>
+
+        <div class="info-container">
+          <ul class="list-unstyled mb-0 d-flex flex-column gap-3">
+            <li class="d-flex align-items-center justify-content-between">
+              <span class="d-flex align-items-center text-heading fw-medium">
+                <i class="ti ti-user me-2 text-muted"></i> ایجاد شده توسط:
+              </span>
+              <span>{{ team.created_by.get_full_name|default:team.created_by.username }}</span>
+            </li>
+
+            <li class="d-flex align-items-center justify-content-between">
+              <span class="d-flex align-items-center text-heading fw-medium">
+                <i class="ti ti-calendar me-2 text-muted"></i> تاریخ ایجاد:
+              </span>
+              <span style="direction: ltr;">{{ team.created_at|jformat:"%Y/%m/%d" }}</span>
+            </li>
+
+            <li class="d-flex align-items-center justify-content-between">
+              <span class="d-flex align-items-center text-heading fw-medium">
+                <i class="ti ti-users-group me-2 text-muted"></i> اعضا:
+              </span>
+              <span class="badge bg-label-info rounded-pill">{{ team.members_teams.count }} نفر</span>
+            </li>
+
+            <li class="d-flex align-items-center justify-content-between">
+              <span class="d-flex align-items-center text-heading fw-medium">
+                <i class="ti ti-briefcase me-2 text-muted"></i> پروژه‌ها:
+              </span>
+              <span class="badge bg-label-primary rounded-pill">{{ team.teams_projects.count }} پروژه</span>
+            </li>
+          </ul>
+        </div>
+
+        {% if team.sub_teams.exists %}
+        <div class="divider my-4">
+          <div class="divider-text">زیرتیم‌ها</div>
+        </div>
+        <div class="d-flex flex-wrap justify-content-center gap-2">
+          {% for sub_team in team.sub_teams.all %}
+            <a href="{% url 'team_detail' sub_team.id %}" class="btn btn-sm btn-outline-secondary rounded-pill">
+              {{ sub_team.name }}
+            </a>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+
+    <div class="card flex-grow-1"> <div class="card-header d-flex justify-content-between align-items-center border-bottom">
+        <h5 class="mb-0">اعضای تیم</h5>
+
+        {% if request.user.role == "manager" %}
+          <button class="btn btn-primary btn-sm"
+                  data-bs-toggle="offcanvas"
+                  data-bs-target="#addMemberCanvas">
+            <i class="ti ti-plus me-1"></i>
+            افزودن عضو
+          </button>
+        {% endif %}
+      </div>
+
+      <div class="card-datatable table-responsive">
+        <table class="table datatables-team-members">
+          <thead>
+            <tr>
+              <th>کاربر</th>
+              <th>نام کاربری</th>
+              <th>تعداد تسک‌ها</th>
+              <th class="text-center">عملیات</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+    </div>
+
   </div>
 
-  <div class="modal fade" id="deleteServerModal" tabindex="-1">
-    <div class="modal-dialog">
-      <form method="post" class="modal-content">
-        {% csrf_token %}
-
-        <input type="hidden" name="delete_team_id" id="deleteTeamId">
-
-        <div class="modal-header">
-          <h5 class="modal-title" id="deleteServerModalTitle">حذف تیم</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
-        </div>
-
-        <div class="modal-body">
-          <p>آیا از حذف <strong id="serverNameInModal">این تیم</strong> مطمئن هستید؟</p>
-        </div>
-
-        <div class="modal-footer">
-          <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">صرف نظر</button>
-          <button type="submit" class="btn btn-danger">بله، حذف کن</button>
-
-        </div>
-      </form>
+  <div class="col-12 col-xl-7">
+    <div class="card h-100"> <div class="card-header border-bottom d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">پروژه‌های تیم</h5>
+      </div>
+      <div class="card-datatable table-responsive">
+        <table class="datatables-team-projects table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>نام پروژه</th>
+              <th>نفرات</th>
+              <th>وضعیت</th>
+              <th>پیشرفت</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
     </div>
   </div>
 
+</div>
+</div>
 
+<div class="offcanvas offcanvas-end" id="addMemberCanvas">
+  <div class="offcanvas-header">
+    <h5>افزودن عضو به تیم</h5>
+    <button class="btn-close" data-bs-dismiss="offcanvas"></button>
+  </div>
+
+  <div class="offcanvas-body">
+    <select id="userSelect" class="form-select mb-3">
+      <option value="">انتخاب کاربر...</option>
+      {% for user in available_users %}
+        <option value="{{ user.id }}">
+          {{ user.get_full_name }} ({{ user.username }})
+        </option>
+      {% endfor %}
+    </select>
+
+    <button class="btn btn-success w-100" id="addMemberBtn">
+      <i class="ti ti-plus me-1"></i>
+      افزودن به تیم
+    </button>
+  </div>
+</div>
+
+<div class="modal fade" id="removeMemberModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">حذف عضو تیم</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body text-center">
+        <i class="ti ti-alert-circle text-warning" style="font-size: 4rem;"></i>
+        <p class="mb-1 mt-3">آیا از حذف این کاربر از تیم مطمئن هستید؟</p>
+        <strong id="remove-member-name" class="text-danger fs-5"></strong>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">انصراف</button>
+        <button class="btn btn-danger" id="confirmRemoveMember">
+          <i class="ti ti-trash me-1"></i>
+          حذف
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
 {% endblock %}
+
+
+

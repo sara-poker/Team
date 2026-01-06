@@ -1,13 +1,16 @@
-from django.db.models import ProtectedError
-from django.shortcuts import redirect, get_object_or_404
+from django.db.models import Count, Q, ProtectedError
+from django.shortcuts import redirect, get_object_or_404, render
 from django.views.generic import (TemplateView)
 from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
+from django.http import JsonResponse, HttpResponseForbidden
 
 from web_project import TemplateLayout
 from config.utils import *
 
 from apps.setup.models import Team
+from apps.organization.models import *
 
 
 class TeamView(ManagerOnlyMixin, TemplateView):
@@ -78,9 +81,18 @@ class TeamDetail(TemplateView):
 
         team = get_object_or_404(Team, id=self.kwargs['pk'])
 
+        User = get_user_model()
+        user = self.request.user
+
+        if user.role == 'manager':
+            users = User.objects.all().exclude(is_superuser=True)
+        else:
+            users = []
+
         context['class_notification'] = self.request.GET.get('alert_class', 'none_alert_mo')
         context['message'] = self.request.GET.get('message', '')
         context['team'] = team
+        context['available_users'] = users
         return context
 
 
@@ -117,3 +129,138 @@ class UsersTableView(StaffRequiredMixin, TemplateView):
 
         context['users'] = users
         return context
+
+
+@login_required
+def team_detail(request, team_id):
+    """صفحه جزئیات تیم"""
+    team = get_object_or_404(Team, id=team_id)
+
+    # کاربرانی که عضو این تیم نیستند (برای افزودن)
+    User = get_user_model()
+    available_users = User.objects.exclude(
+        id__in=team.members_teams.values_list('id', flat=True)
+    )
+
+    context = {
+        'team': team,
+        'available_users': available_users,
+    }
+    return render(request, 'teams/team_detail.html', context)
+
+
+@login_required
+def team_projects_api(request, team_id):
+    """API پروژه‌های تیم"""
+    team = get_object_or_404(Team, id=team_id)
+    projects = team.teams_projects.all()
+
+    data = []
+    for project in projects:
+        # دریافت اعضای پروژه (حداکثر 5 نفر)
+        members_list = []
+        all_members = project.members.all()
+
+        for member in all_members[:5]:
+            members_list.append({
+                'id': member.id,
+                'full_name': member.get_full_name() or member.username,
+                'avatar': f'{member.username}.png'
+            })
+
+        data.append({
+            'id': project.id,
+            'title': project.title,
+            'status': project.status,
+            'progress': project.get_project_progress(),
+            'members': members_list,
+            'total_members': all_members.count(),
+        })
+
+    return JsonResponse({'data': data})
+
+
+@login_required
+def team_members_api(request, team_id):
+    """API اعضای تیم"""
+    team = get_object_or_404(Team, id=team_id)
+
+    # تعداد تسک‌های هر عضو در پروژه‌های این تیم
+    team_projects = team.teams_projects.all()
+
+    members = team.members_teams.annotate(
+        tasks_count=Count(
+            'members_tasks',
+            filter=Q(members_tasks__project__in=team_projects),
+            distinct=True
+        )
+    )
+
+    # نمایش نقش‌ها به فارسی
+    role_display = {
+        'admin': 'مدیر سیستم',
+        'manager': 'مدیر',
+        'user': 'کاربر',
+    }
+
+    data = []
+    for user in members:
+        data.append({
+            'id': user.id,
+            'full_name': user.get_full_name() or user.username,
+            'username': user.username,
+            'role': getattr(user, 'role', 'user'),
+            'role_display': role_display.get(getattr(user, 'role', 'user'), 'کاربر'),
+            'tasks_count': user.tasks_count,
+            'avatar': f'{user.username}.png'
+        })
+
+    return JsonResponse({'data': data})
+
+
+@login_required
+def add_team_member(request, team_id):
+    """افزودن عضو به تیم"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    User = get_user_model()
+    team = get_object_or_404(Team, id=team_id)
+
+    # بررسی دسترسی
+    if request.user.role not in ['admin', 'manager']:
+        return HttpResponseForbidden('Access denied')
+
+    user_id = request.POST.get('user_id')
+    if not user_id:
+        return JsonResponse({'error': 'user_id is required'}, status=400)
+
+    user = get_object_or_404(User, id=user_id)
+
+    # بررسی عضویت قبلی
+    if team.members_teams.filter(id=user.id).exists():
+        return JsonResponse({'error': 'User already member'}, status=400)
+
+    team.members_teams.add(user)
+
+    return JsonResponse({'status': 'ok', 'message': 'Member added successfully'})
+
+
+@login_required
+def remove_team_member(request, team_id, user_id):
+    """حذف عضو از تیم"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    User = get_user_model()
+    team = get_object_or_404(Team, id=team_id)
+
+    # بررسی دسترسی
+    if request.user.role not in ['admin', 'manager']:
+        return HttpResponseForbidden('Access denied')
+
+    user = get_object_or_404(User, id=user_id)
+
+    team.members_teams.remove(user)
+
+    return JsonResponse({'status': 'ok', 'message': 'Member removed successfully'})
