@@ -113,7 +113,7 @@
     const PROJECT_ID = {{ project.id }};
     const CSRF_TOKEN = '{{ csrf_token }}';
 
-    {% if request.user.role in 'admin manager' %}
+    {% if request.user.role in 'admin manager' and project.status != "completed" %}
       const CAN_MANAGE_MEMBERS = true;
     {% else %}
       const CAN_MANAGE_MEMBERS = false;
@@ -399,7 +399,7 @@
         <div class="card-header d-flex justify-content-between align-items-center">
           <h5 class="mb-0">اعضای پروژه</h5>
 
-          {% if request.user.role != "user" %}
+          {% if request.user.role != "user" and project.status != "completed" %}
             <button class="btn btn-primary"
                     data-bs-toggle="offcanvas"
                     data-bs-target="#addMemberCanvas">
