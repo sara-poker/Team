@@ -41,6 +41,18 @@
 {% block page_css %}
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'vendor/css/pages/cards-advance.css' %}" />
+  <style>
+    .hover-card {
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .hover-card:hover {
+      background-color: rgba(255, 255, 255, 0.15) !important;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+  </style>
 {% endblock page_css %}
 
 {% block page_js %}
@@ -144,7 +156,11 @@
                      width="38">
                 <div>
                   <div class="fw-semibold">${data}</div>
-                  <small class="text-muted">${row.role}</small>
+                    <small class="text-muted">
+                        ${row.role === 'manager' ? 'مدیر مجموعه' :
+                        row.role === 'admin' ? 'سرپرست تیم' :
+                        'کارشناس'}
+                  </small>
                 </div>
               </div>
             `;
@@ -353,30 +369,38 @@
               <div class="d-flex flex-column gap-2">
 
                 <!-- آیتم 1 -->
-                <div
-                  class="d-flex align-items-center justify-content-between p-2 rounded bg-label-secondary bg-opacity-10">
-                  <small class="fw-semibold text-secondary">تسک های تازه اضافه شده</small>
-                  <span class="badge bg-secondary rounded-pill">{{ task_not_started }}</span>
-                </div>
+                <a href="/projects/{{ project.id }}/tasks" class="hover-card">
+                  <div
+                    class="d-flex align-items-center justify-content-between p-2 rounded bg-label-secondary bg-opacity-10">
+                    <small class="fw-semibold text-secondary">تسک های تازه اضافه شده</small>
+                    <span class="badge bg-secondary rounded-pill">{{ task_not_started }}</span>
+                  </div>
+                </a>
 
                 <!-- آیتم 2 -->
-                <div
-                  class="d-flex align-items-center justify-content-between p-2 rounded bg-label-warning bg-opacity-10">
-                  <small class="fw-semibold text-warning">تسک های در حال اجرا</small>
-                  <span class="badge bg-warning rounded-pill">{{ task_in_progress }}</span>
-                </div>
+                <a href="/projects/{{ project.id }}/tasks?status=in_progress" class="hover-card">
+                  <div
+                    class="d-flex align-items-center justify-content-between p-2 rounded bg-label-warning bg-opacity-10">
+                    <small class="fw-semibold text-warning">تسک های در حال اجرا</small>
+                    <span class="badge bg-warning rounded-pill">{{ task_in_progress }}</span>
+                  </div>
+                </a>
 
-                <div
-                  class="d-flex align-items-center justify-content-between p-2 rounded bg-label-linkedin bg-opacity-10">
-                  <small class="fw-semibold text-dark">تسک های در حال بررسی</small>
-                  <span class="badge bg-linkedin rounded-pill">{{ task_reviewing }}</span>
-                </div>
+                <a href="/projects/{{ project.id }}/tasks?status=reviewing" class="hover-card">
+                  <div
+                    class="d-flex align-items-center justify-content-between p-2 rounded bg-label-linkedin bg-opacity-10">
+                    <small class="fw-semibold text-dark">تسک های در حال بررسی</small>
+                    <span class="badge bg-linkedin rounded-pill">{{ task_reviewing }}</span>
+                  </div>
+                </a>
 
-                <div
-                  class="d-flex align-items-center justify-content-between p-2 rounded bg-label-success bg-opacity-10">
-                  <small class="fw-semibold text-success">تسک های پایان یافته</small>
-                  <span class="badge bg-success rounded-pill">{{ task_completed }}</span>
-                </div>
+                <a href="/projects/{{ project.id }}/tasks?status=completed" class="hover-card">
+                  <div
+                    class="d-flex align-items-center justify-content-between p-2 rounded bg-label-success bg-opacity-10">
+                    <small class="fw-semibold text-success">تسک های پایان یافته</small>
+                    <span class="badge bg-success rounded-pill">{{ task_completed }}</span>
+                  </div>
+                </a>
 
               </div>
             </div>
