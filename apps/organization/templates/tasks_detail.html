@@ -356,9 +356,16 @@
       <div class="tab-content p-0">
         <div class="row">
           <div class="col-lg-4 col-md-12">
-            <button class="btn btn-outline-primary w-100 mb-3" data-bs-target="#modalTop" data-bs-toggle="modal"
-                    type="button">ایجاد تسک
-            </button>
+            {% if project.status != "completed" %}
+              <button class="btn btn-outline-primary w-100 mb-3" data-bs-target="#modalTop" data-bs-toggle="modal"
+                      type="button">ایجاد تسک
+              </button>
+            {% else %}
+              <button class="btn btn-outline-secondary w-100 mb-3" disabled type="button">
+                <i class="ti ti-lock me-1"></i> ایجاد تسک
+              </button>
+            {% endif %}
+
             <div class="card">
               <div class="card-datatable table-responsive pt-0">
                 <table id="my_tasks_table" class="table">
@@ -377,9 +384,20 @@
 
           <div class="col-lg-8">
             <div class="card p-4">
+
+              {% if project.status == "completed" %}
+                <div class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+                  <i class="ti ti-lock ti-lg me-2"></i>
+                  <div>
+                    <strong>پروژه خاتمه یافته!</strong> این پروژه به پایان رسیده و امکان ویرایش تسک‌ها وجود ندارد.
+                  </div>
+                </div>
+              {% endif %}
+
               <form id="taskForm" method="POST">
                 {% csrf_token %}
                 <div class="row g-3">
+
                   {% if request.user.role == "user" %}
                     <div class="col-12">
                       <label class="form-label" for="title">عنوان تسک</label>
@@ -396,7 +414,8 @@
                     </div>
                     <div class="col-md-4">
                       <label class="form-label">وضعیت</label>
-                      <select name="status" class="select2 form-select">
+                      <select name="status" class="select2 form-select"
+                              {% if project.status == "completed" %}disabled{% endif %}>
                         <option value="not_started" {% if task.status == 'not_started' %}selected{% endif %}>تازه اضافه
                           شده
                         </option>
@@ -415,7 +434,8 @@
                     <label class="form-label" for="assigneesSelect">اعضای پروژه</label>
                     <div class="select2-primary">
                       <select class="select2 form-select" id="assigneesSelect" name="assignees" multiple
-                              {% if request.user.role == "user" %}disabled{% endif %}>
+                              {% if request.user.role == "user" %}disabled{% endif %}
+                              {% if project.status == "completed" %}disabled{% endif %}>
                         {% for u in project.members.all %}
                           {% if not u.is_superuser %}
                             <option value="{{ u.id }}"
@@ -435,19 +455,39 @@
 
                   <div class="col-md-4">
                     <label class="form-label">موعد تحویل (سررسید)</label>
-                    <input name="deadline" class="form-control" id="flatpickr-deadline"
-                           placeholder="{{ task.deadline|jformat:"%Y-%m-%d" }}"
-                           type="text"
-                           value="{{ task.deadline|jformat:"%Y-%m-%d" }}"
-                           {% if request.user.role == 'user' and request.user not in task.assignees.all %}disabled{% endif %} />
+                    {% if project.status == "completed" %}
+                      <input name="deadline" class="form-control" id="flatpickr-deadline"
+                             placeholder="{{ task.deadline|jformat:'%Y-%m-%d' }}"
+                             type="text"
+                             value="{{ task.deadline|jformat:'%Y-%m-%d' }}"
+                             disabled />
+                    {% elif request.user.role == 'user' and request.user not in task.assignees.all %}
+                      <input name="deadline" class="form-control" id="flatpickr-deadline"
+                             placeholder="{{ task.deadline|jformat:'%Y-%m-%d' }}"
+                             type="text"
+                             value="{{ task.deadline|jformat:'%Y-%m-%d' }}"
+                             disabled />
+                    {% else %}
+                      <input name="deadline" class="form-control" id="flatpickr-deadline"
+                             placeholder="{{ task.deadline|jformat:'%Y-%m-%d' }}"
+                             type="text"
+                             value="{{ task.deadline|jformat:'%Y-%m-%d' }}" />
+                    {% endif %}
                   </div>
 
                   <div class="col-md-8">
                     <label class="form-label">درصد پیشرفت</label>
                     <div class="d-flex align-items-center">
-                      <input type="range" class="form-range me-3" id="taskPercent" name="percent" min="0" max="100"
-                             value="{{ task.percent|default:0 }}"
-                             {% if request.user.role == 'user' and request.user not in task.assignees.all %}disabled{% endif %} />
+                      {% if project.status == "completed" %}
+                        <input type="range" class="form-range me-3" id="taskPercent" name="percent" min="0" max="100"
+                               value="{{ task.percent|default:0 }}" disabled />
+                      {% elif request.user.role == 'user' and request.user not in task.assignees.all %}
+                        <input type="range" class="form-range me-3" id="taskPercent" name="percent" min="0" max="100"
+                               value="{{ task.percent|default:0 }}" disabled />
+                      {% else %}
+                        <input type="range" class="form-range me-3" id="taskPercent" name="percent" min="0" max="100"
+                               value="{{ task.percent|default:0 }}" />
+                      {% endif %}
                       <span class="fw-bold" id="taskPercentValue">{{ task.percent|default:0 }}%</span>
                     </div>
                   </div>
@@ -455,9 +495,16 @@
                   <div class="col-md-4">
                     <label class="form-label">وزن تسک</label>
                     <div class="input-group">
-                      <input type="number" class="form-control text-center" name="weight" min="1" max="10"
-                             value="{{ task.weight|default:1 }}"
-                             {% if request.user.role == 'user' and request.user not in task.assignees.all %}disabled{% endif %} />
+                      {% if project.status == "completed" %}
+                        <input type="number" class="form-control text-center" name="weight" min="1" max="10"
+                               value="{{ task.weight|default:1 }}" disabled />
+                      {% elif request.user.role == 'user' and request.user not in task.assignees.all %}
+                        <input type="number" class="form-control text-center" name="weight" min="1" max="10"
+                               value="{{ task.weight|default:1 }}" disabled />
+                      {% else %}
+                        <input type="number" class="form-control text-center" name="weight" min="1" max="10"
+                               value="{{ task.weight|default:1 }}" />
+                      {% endif %}
                       <span class="input-group-text">۱–۱۰</span>
                     </div>
                   </div>
@@ -469,14 +516,16 @@
                   <div class="col-md-12">
                     <label for="taskDescription" class="form-label">توضیحات</label>
                     <div class="input-group">
-        <textarea
-          class="form-control"
-          id="taskDescription"
-          name="description"
-          rows="3"
-          placeholder="توضیحات ....."
-          {% if request.user.role == 'user' and request.user not in task.assignees.all %}disabled{% endif %}
-        >{{ task.description }}</textarea>
+                      {% if project.status == "completed" %}
+                        <textarea class="form-control" id="taskDescription" name="description" rows="3"
+                                  placeholder="توضیحات ....." disabled>{{ task.description }}</textarea>
+                      {% elif request.user.role == 'user' and request.user not in task.assignees.all %}
+                        <textarea class="form-control" id="taskDescription" name="description" rows="3"
+                                  placeholder="توضیحات ....." disabled>{{ task.description }}</textarea>
+                      {% else %}
+                        <textarea class="form-control" id="taskDescription" name="description" rows="3"
+                                  placeholder="توضیحات .....">{{ task.description }}</textarea>
+                      {% endif %}
                     </div>
                   </div>
 
@@ -484,16 +533,16 @@
                     <div class="border rounded-2 p-3 h-100 bg-label-dark">
                       <small class="text-muted d-block mb-1">تاریخ شروع تسک </small>
                       <span class="fw-semibold">
-          {% if task.start_date %}{{ task.start_date|jformat:"%Y/%m/%d" }}{% else %}تعیین نشده{% endif %}
-        </span>
+                {% if task.start_date %}{{ task.start_date|jformat:"%Y/%m/%d" }}{% else %}تعیین نشده{% endif %}
+              </span>
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="border rounded-2 p-3 h-100 bg-label-dark">
                       <small class="text-muted d-block mb-1">تاریخ پایان تسک</small>
                       <span class="fw-semibold">
-          {% if task.end_date %}{{ task.end_date|jformat:"%Y/%m/%d" }}{% else %}تعیین نشده{% endif %}
-        </span>
+                {% if task.end_date %}{{ task.end_date|jformat:"%Y/%m/%d" }}{% else %}تعیین نشده{% endif %}
+              </span>
                     </div>
                   </div>
                 </div>
@@ -522,10 +571,21 @@
                 </div>
 
                 <div class="d-flex justify-content-end mt-4">
-                  {% if request.user.role == 'user' and request.user not in task.assignees.all %}
+
+                  {# اولین اولویت: پروژه خاتمه یافته #}
+                  {% if project.status == "completed" %}
+                    <button class="btn btn-secondary" disabled type="button">
+                      <i class="ti ti-lock me-1"></i>
+                      پروژه خاتمه یافته - امکان تغییر تسک‌ها وجود ندارد
+                    </button>
+
+                    {# دومین اولویت: یوزر عادی بدون اساین #}
+                  {% elif request.user.role == 'user' and request.user not in task.assignees.all %}
                     <button class="btn btn-secondary me-2" disabled type="button">
                       شما فقط دسترسی مشاهده دارید
                     </button>
+
+                    {# سومین اولویت: یوزرهایی که دسترسی دارند #}
                   {% else %}
                     {% if task.status == "not_started" and request.user.role == "user" %}
                       <button class="btn btn-warning me-2" type="submit" name="change_status" value="in_progress">
@@ -533,7 +593,7 @@
                       </button>
                     {% endif %}
 
-                    {% if task.status == "in_progress" %}
+                    {% if task.status == "in_progress" and request.user.role == "user" %}
                       <button class="btn btn-linkedin me-2" type="submit" name="change_status" value="reviewing">
                         پایان و ارسال به مدیر
                       </button>
@@ -556,16 +616,14 @@
 
                 </div>
               </form>
+
               <script>
                 (function() {
                   const percentRange = document.getElementById('taskPercent');
                   const percentOutput = document.getElementById('taskPercentValue');
 
                   if (percentRange && percentOutput) {
-                    // مقدار اولیه
                     percentOutput.textContent = percentRange.value + '%';
-
-                    // آپدیت هنگام حرکت اسلایدر
                     percentRange.addEventListener('input', function() {
                       percentOutput.textContent = this.value + '%';
                     });
