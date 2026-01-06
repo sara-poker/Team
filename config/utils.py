@@ -36,3 +36,13 @@ class UserOnlyMixin(AccessMixin):
         if request.user.role != "user":
             return redirect(self.redirect_url)
         return super().dispatch(request, *args, **kwargs)
+
+
+def can_manage_project_members(user, project):
+    if not user.is_authenticated:
+        return False
+
+    if user.role in ('admin', 'manager'):
+        return True
+
+    return False

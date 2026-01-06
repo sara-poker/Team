@@ -34,67 +34,433 @@
   <script src="{% static 'vendor/libs/@form-validation/umd/plugin-auto-focus/index.min.js' %}"></script>
 
   <script src="{% static 'vendor/libs/select2/select2.js' %}"></script>
-
+  <script src="{% static 'vendor/libs/apex-charts/apexcharts.js' %}"></script>
 
 {% endblock vendor_js %}
 
 {% block page_css %}
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'vendor/css/pages/cards-advance.css' %}" />
-  <style>
-    #alert_mo {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      z-index: 5000;
-    }
-
-    .none_alert_mo {
-      display: none !important;
-    }
-
-    .success_alert_mo {
-      color: #00b300 !important;
-      background: #cfeee6 !important;
-      border: 2px solid #00b300 !important;
-    }
-
-    .err_alert_mo {
-      color: #b30000 !important;
-      background: #eecfcf !important;
-      border: 2px solid #b30000 !important;
-    }
-
-  </style>
 {% endblock page_css %}
 
 {% block page_js %}
   {{ block.super }}
   <script src="{% static 'js/tables-datatables-basic.js' %}"></script>
   <script src="{% static 'js/form-layouts.js' %}"></script>
+
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      const deleteButtons = document.querySelectorAll('.item-delete');
-      const serverNameEl = document.getElementById('serverNameInModal');
-      const serverIdInput = document.getElementById('deleteProjectId');
 
-      deleteButtons.forEach(button => {
-        button.addEventListener('click', function() {
-          const name = this.getAttribute('data-server-name');
-          const id = this.getAttribute('data-server-id');
-          serverNameEl.textContent = name;
-          serverIdInput.value = id;
+      const progressValue = {{ progress|default:0 }};
+
+      let chartColor = '#ff3e1d'; // قرمز
+      if (progressValue >= 70) {
+        chartColor = '#71dd37'; // سبز
+      } else if (progressValue >= 25) {
+        chartColor = '#ffab00'; // زرد
+      }
+
+      const chartEl = document.querySelector('#projectProgressChart');
+
+      if (chartEl) {
+        const options = {
+          series: [progressValue],
+          chart: {
+            height: 320,
+            type: 'radialBar'
+          },
+          plotOptions: {
+            radialBar: {
+              startAngle: -140,
+              endAngle: 130,
+              hollow: {
+                size: '65%'
+              },
+              track: {
+                background: '#f1f1f1'
+              },
+              dataLabels: {
+                name: {
+                  show: true,
+                  offsetY: -10,
+                  fontSize: '13px'
+                },
+                value: {
+                  formatter: function(val) {
+                    return val + '%';
+                  },
+                  fontSize: '36px',
+                  fontWeight: 600
+                }
+              }
+            }
+          },
+          labels: ['پیشرفت پروژه'],
+          colors: [chartColor],
+          stroke: {
+            dashArray: 8
+          }
+        };
+
+        const chart = new ApexCharts(chartEl, options);
+        chart.render();
+      }
+
+    });
+  </script>
+
+  <script>
+    const PROJECT_ID = {{ project.id }};
+    const CSRF_TOKEN = '{{ csrf_token }}';
+
+    {% if request.user.role in 'admin manager' %}
+      const CAN_MANAGE_MEMBERS = true;
+    {% else %}
+      const CAN_MANAGE_MEMBERS = false;
+    {% endif %}
+  </script>
+
+  <script>
+    $(function() {
+
+      const table = $('.datatables-basic-members').DataTable({
+        ajax: '{% url "project_members_api" project.id %}',
+        language: {
+          url: assetsPath + 'json/i18n/datatables-bs5/fa.json'
+        },
+        searching: false,
+        paging: false,
+        ordering: false,
+        info: false,
+
+        columns: [
+          {
+            data: 'full_name',
+            render: function(data, type, row) {
+              return `
+              <div class="d-flex align-items-center">
+                <img src="${assetsPath}img/avatars/${row.avatar}"
+                     class="rounded-circle me-2"
+                     width="38">
+                <div>
+                  <div class="fw-semibold">${data}</div>
+                  <small class="text-muted">${row.role}</small>
+                </div>
+              </div>
+            `;
+            }
+          },
+          { data: 'username' },
+          { data: 'tasks_count' },
+          {
+            data: null,
+            className: 'text-center',
+            orderable: false,
+            searchable: false,
+            render: function(data, type, full) {
+
+              if (!CAN_MANAGE_MEMBERS) {
+                return '';
+              }
+
+              return `
+              <button
+                class="btn btn-sm btn-icon text-danger remove-member-btn"
+                data-user-id="${full.id}"
+                data-user-name="${full.full_name}">
+                <i class="ti ti-trash"></i>
+              </button>
+            `;
+            }
+          }
+        ]
+      });
+
+      /* ============================
+         حذف عضو (Modal)
+      ============================ */
+
+      let selectedUserId = null;
+
+      $(document).on('click', '.remove-member-btn', function() {
+        selectedUserId = $(this).data('user-id');
+        const userName = $(this).data('user-name');
+
+        $('#remove-member-name').text(userName);
+        $('#removeMemberModal').modal('show');
+      });
+
+      $('#confirmRemoveMember').on('click', function() {
+        if (!selectedUserId) return;
+
+        $.ajax({
+          url: `/projects/${PROJECT_ID}/members/remove/${selectedUserId}/`,
+          type: 'POST',
+          headers: {
+            'X-CSRFToken': CSRF_TOKEN
+          },
+          success: function() {
+            $('#removeMemberModal').modal('hide');
+            table.ajax.reload(null, false);
+          },
+          error: function() {
+            alert('خطا در حذف عضو پروژه');
+          }
         });
       });
+
+      /* ============================
+         افزودن عضو
+      ============================ */
+
+      $('#addMemberBtn').on('click', function() {
+
+        if (!CAN_MANAGE_MEMBERS) return;
+
+        $.post(`/projects/${PROJECT_ID}/members/add/`, {
+          user_id: $('#userSelect').val(),
+          csrfmiddlewaretoken: CSRF_TOKEN
+        }, function() {
+          table.ajax.reload(null, false);
+          bootstrap.Offcanvas.getInstance(
+            document.getElementById('addMemberCanvas')
+          ).hide();
+        });
+      });
+
     });
   </script>
 {% endblock page_js %}
 
 {% block content %}
-  <h4 class="py-3 mb-4">
-    <span class="text-muted fw-light">  پروژه ها /</span> پروژه {{ project.title }}
-  </h4>
+  <div class="row g-4 align-items-stretch">
+
+    <!-- کارت اطلاعات پروژه -->
+    <div class="col-md-7">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body d-flex flex-column"> <!-- فلکس ستونی برای مدیریت ارتفاع -->
+
+          <!-- هدر: عنوان و بج وضعیت -->
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="card-title mb-0 text-heading fw-bold">{{ project.title }}</h4>
+
+            {% if project.status == 'not_started' %}
+              <span class="badge bg-label-secondary px-3 py-2 rounded-pill">شروع نشده</span>
+            {% elif project.status == 'in_progress' %}
+              <span class="badge bg-label-warning px-3 py-2 rounded-pill">در حال اجرا</span>
+            {% elif project.status == 'completed' %}
+              <span class="badge bg-label-success px-3 py-2 rounded-pill">پایان یافته</span>
+            {% endif %}
+          </div>
+
+          <!-- توضیحات -->
+          <div class="mb-4">
+            <p class="text-muted" style="line-height: 1.8;">
+              {{ project.description|default:"توضیحاتی برای این پروژه ثبت نشده است." }}
+            </p>
+          </div>
+
+          <!-- پر کردن فضای خالی با اطلاعات مفید (Meta Info) -->
+          <!-- این بخش باعث می‌شود کارت پرتر دیده شود -->
+          <div class="row mb-4 g-3">
+            <div class="col-sm-6">
+              <div class="d-flex align-items-center p-2 rounded bg-lighter">
+                <i class="ti ti-calendar text-primary fs-4 me-2"></i> <!-- آیکون تقویم -->
+                <div>
+                  <small class="text-muted d-block">تاریخ شروع</small>
+                  <span class="fw-semibold text-dark">{{ project.start_date|jformat:"%Y/%m/%d" }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="d-flex align-items-center p-2 rounded bg-lighter">
+                <i class="ti ti-calendar-check text-danger fs-4 me-2"></i> <!-- آیکون ددلاین -->
+                <div>
+                  <small class="text-muted d-block">مهلت تحویل</small>
+                  <span class="fw-semibold text-dark">{{ project.end_date|jformat:"%Y/%m/%d" }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+          <div class="mt-auto">
+            <hr class="my-3 border-light">
+
+            {% if request.user.role != "user" %}
+              {% if project.status == 'not_started' %}
+                <form method="post" action="{% url 'project_change_status' project.id %}">
+                  {% csrf_token %}
+                  <button type="submit"
+                          class="btn btn-primary w-100 py-2 fw-bold d-flex align-items-center justify-content-center">
+                    <i class="bx bx-refresh me-2"></i> <!-- آیکون رفرش -->
+                    شروع پروژه
+                  </button>
+                </form>
+              {% elif project.status == 'in_progress' %}
+                <form method="post" action="{% url 'project_change_status' project.id %}">
+                  {% csrf_token %}
+                  <button type="submit"
+                          class="btn btn-danger w-100 py-2 fw-bold d-flex align-items-center justify-content-center">
+                    <i class="bx bx-refresh me-2"></i> <!-- آیکون رفرش -->
+                    پایان پروژه
+                  </button>
+                </form>
+              {% endif %}
+            {% endif %}
+
+            {% if project.status == 'completed' %}
+
+              <div class="alert alert-success d-flex align-items-center mb-0" role="alert">
+                <i class="bx bx-check-circle me-2"></i>
+                <div>پروژه با موفقیت تکمیل شده است.</div>
+              </div>
+            {% endif %}
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- کارت نمودار پیشرفت و آمار تسک -->
+    <div class="col-md-5">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="row align-items-center h-100">
+
+            <!-- لیست آمار -->
+            <div class="col-lg-6 order-2 order-lg-1">
+              <h5 class="mb-3 fw-bold">وضعیت پروژه</h5>
+              <div class="d-flex flex-column gap-2">
+
+                <!-- آیتم 1 -->
+                <div
+                  class="d-flex align-items-center justify-content-between p-2 rounded bg-label-secondary bg-opacity-10">
+                  <small class="fw-semibold text-secondary">تسک های تازه اضافه شده</small>
+                  <span class="badge bg-secondary rounded-pill">{{ task_not_started }}</span>
+                </div>
+
+                <!-- آیتم 2 -->
+                <div
+                  class="d-flex align-items-center justify-content-between p-2 rounded bg-label-warning bg-opacity-10">
+                  <small class="fw-semibold text-warning">تسک های در حال اجرا</small>
+                  <span class="badge bg-warning rounded-pill">{{ task_in_progress }}</span>
+                </div>
+
+                <div
+                  class="d-flex align-items-center justify-content-between p-2 rounded bg-label-linkedin bg-opacity-10">
+                  <small class="fw-semibold text-dark">تسک های در حال بررسی</small>
+                  <span class="badge bg-linkedin rounded-pill">{{ task_reviewing }}</span>
+                </div>
+
+                <div
+                  class="d-flex align-items-center justify-content-between p-2 rounded bg-label-success bg-opacity-10">
+                  <small class="fw-semibold text-success">تسک های پایان یافته</small>
+                  <span class="badge bg-success rounded-pill">{{ task_completed }}</span>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- نمودار -->
+            <div class="col-lg-6 order-1 order-lg-2 mb-3 mb-lg-0 text-center">
+              <div id="projectProgressChart" style="min-height: 180px;"></div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">اعضای پروژه</h5>
+
+          {% if request.user.role != "user" %}
+            <button class="btn btn-primary"
+                    data-bs-toggle="offcanvas"
+                    data-bs-target="#addMemberCanvas">
+              <i class="ti ti-plus"></i>
+              افزودن عضو
+            </button>
+          {% endif %}
+        </div>
+
+        <div class="card-datatable table-responsive">
+          <table class="table datatables-basic-members">
+            <thead>
+            <tr>
+              <th>کاربر</th>
+              <th>نام کاربری</th>
+              <th>تعداد تسک‌ها</th>
+              <th class="text-center">عملیات</th>
+            </tr>
+            </thead>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="offcanvas offcanvas-end" id="addMemberCanvas">
+    <div class="offcanvas-header">
+      <h5>افزودن عضو به پروژه</h5>
+      <button class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body">
+      <select id="userSelect" class="form-select mb-3">
+        {% for user in users %}
+          <option value="{{ user.id }}">
+            {{ user.get_full_name }} ({{ user.username }})
+          </option>
+        {% endfor %}
+      </select>
+
+      <button class="btn btn-success w-100" id="addMemberBtn">
+        افزودن به پروژه
+      </button>
+    </div>
+  </div>
+
+
+  <div class="modal fade" id="removeMemberModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <h5 class="modal-title">حذف عضو پروژه</h5>
+          <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <p class="mb-1">
+            آیا از حذف این کاربر از پروژه مطمئن هستید؟
+          </p>
+          <strong id="remove-member-name" class="text-danger"></strong>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            انصراف
+          </button>
+          <button class="btn btn-danger" id="confirmRemoveMember">
+            حذف
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
 
 
 
 {% endblock %}
+

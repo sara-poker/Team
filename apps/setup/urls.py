@@ -27,5 +27,25 @@ urlpatterns = [
         "setup/user/detail/<int:pk>",
         login_required(UserDetailView.as_view(template_name="user_detail.html")),
         name="usersDetail",
-    )
+    ),
+    path(
+        'teams/<int:team_id>/projects/',
+        team_projects_api,
+        name='team_projects_api'
+    ),
+    path(
+        'teams/<int:team_id>/members/',
+        team_members_api,
+        name='team_members_api'
+    ),
+    path(
+        'teams/<int:team_id>/members/add/',
+        add_team_member,
+        name='add_team_member'
+    ),
+    path(
+        'teams/<int:team_id>/members/remove/<int:user_id>/'
+        , remove_team_member,
+        name='remove_team_member'
+    ),
 ]
