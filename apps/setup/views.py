@@ -140,7 +140,7 @@ def team_detail(request, team_id):
     User = get_user_model()
     available_users = User.objects.exclude(
         id__in=team.members_teams.values_list('id', flat=True)
-    )
+    ).exclude(is_superuser=True)
 
     context = {
         'team': team,
@@ -154,12 +154,16 @@ def team_projects_api(request, team_id):
     """API پروژه‌های تیم"""
     team = get_object_or_404(Team, id=team_id)
     projects = team.teams_projects.all()
+    user = request.user
+
+    if user.role == 'user':
+        projects = projects.filter(members=user)
 
     data = []
     for project in projects:
         # دریافت اعضای پروژه (حداکثر 5 نفر)
         members_list = []
-        all_members = project.members.all()
+        all_members = project.members.all().exclude(is_superuser=True)
 
         for member in all_members[:5]:
             members_list.append({
@@ -194,13 +198,13 @@ def team_members_api(request, team_id):
             filter=Q(members_tasks__project__in=team_projects),
             distinct=True
         )
-    )
+    ).exclude(is_superuser=True)
 
     # نمایش نقش‌ها به فارسی
     role_display = {
-        'admin': 'مدیر سیستم',
-        'manager': 'مدیر',
-        'user': 'کاربر',
+        'admin': 'مدیر مجموعه',
+        'manager': 'سرپرست تیم',
+        'user': 'کارشناس',
     }
 
     data = []

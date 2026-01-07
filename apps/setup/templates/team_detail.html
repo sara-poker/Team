@@ -135,7 +135,7 @@
             responsivePriority: 1,
             render: function(data, type, row) {
               return `
-            <a href="/projects/${row.id}/" class="fw-medium text-heading">
+            <a href="/projects/${row.id}" class="fw-medium text-heading">
               ${data}
             </a>
           `;
@@ -190,8 +190,8 @@
             render: function(data, type, row) {
               const statusConfig = {
                 'not_started': { class: 'bg-label-warning', text: 'شروع نشده' },
-                'in_progress': { class: 'bg-label-success', text: 'در حال انجام' },
-                'completed': { class: 'bg-label-danger', text: 'پایان یافته' }
+                'in_progress': { class: 'bg-label-info', text: 'در حال انجام' },
+                'completed': { class: 'bg-label-success', text: 'پایان یافته' }
               };
 
               const config = statusConfig[data] || { class: 'bg-label-secondary', text: data };

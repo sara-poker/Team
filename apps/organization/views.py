@@ -348,7 +348,8 @@ class TasksDetail(TemplateView):
             title=title,
             weight=int(weight),
             project=project,
-            created_by=request.user
+            created_by=request.user,
+
         )
 
         if request.user.role == "user":
@@ -396,7 +397,7 @@ def project_members_api(request, project_id):
                 distinct=True
             )
         )
-    )
+    ).exclude(is_superuser=True)
 
     data = []
     for user in members:
