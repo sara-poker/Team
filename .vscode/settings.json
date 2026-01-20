@@ -81,4 +81,6 @@
   "eslint.format.enable": true,
   // Extension: npm
   "npm.packageManager": "yarn",
+  "editor.fontFamily": "Fira Code, Consolas, 'Courier New', monospace",
+  "editor.fontLigatures": true,
 }

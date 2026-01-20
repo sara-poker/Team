@@ -199,11 +199,12 @@ class TasksProjectDetail(TemplateView):
         title = request.POST.get('title', '').strip()
         weight = request.POST.get('weight', 1)
 
+        user = self.request.user
+
         if not title:
             return redirect(f"{request.path}?alert_class=err_alert_mo&message=لطفاً عنوان تسک را وارد کنید")
 
         try:
-
             new_task = Task.objects.create(
                 title=title,
                 weight=weight,
@@ -212,6 +213,9 @@ class TasksProjectDetail(TemplateView):
                 status='not_started',
                 percent=0.0
             )
+
+            if user.role == 'user':
+                new_task.assignees.add(user)
 
             success_url = reverse('tasks_detail', kwargs={'pk': project.id, 'task_id': new_task.id})
             return redirect(f"{success_url}")
