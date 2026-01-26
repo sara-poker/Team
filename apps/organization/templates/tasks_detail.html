@@ -314,8 +314,13 @@
                 </div>
               </div>
               <div class="modal-footer">
-                <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">بستن</button>
-                <button type="submit" class="btn btn-primary">ثبت و مشاهده جزئیات</button>
+                {% if project.status == "In progress" %}
+                  <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">بستن</button>
+                  <button type="submit" class="btn btn-primary">ثبت و مشاهده جزئیات</button>
+                  {% else %}
+                  <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">بستن</button>
+                {% endif %}
+
               </div>
             </form>
           </div>
@@ -356,7 +361,7 @@
       <div class="tab-content p-0">
         <div class="row">
           <div class="col-lg-4 col-md-12">
-            {% if project.status != "completed" %}
+            {% if project.status == "in_progress" %}
               <button class="btn btn-outline-primary w-100 mb-3" data-bs-target="#modalTop" data-bs-toggle="modal"
                       type="button">ایجاد تسک
               </button>

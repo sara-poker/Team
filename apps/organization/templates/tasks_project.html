@@ -227,106 +227,106 @@
   <script src="{% static 'js/forms-pickers-jalali.js' %}"></script>
 
   <script>
-  function initMyTasksTable() {
-    var table_element = $('#my_tasks_table');
+    function initMyTasksTable() {
+      var table_element = $('#my_tasks_table');
 
-    if (!table_element.length) {
-      return;
-    }
+      if (!table_element.length) {
+        return;
+      }
 
-    if ($.fn.DataTable.isDataTable('#my_tasks_table')) {
-      $('#my_tasks_table').DataTable().destroy();
-    }
+      if ($.fn.DataTable.isDataTable('#my_tasks_table')) {
+        $('#my_tasks_table').DataTable().destroy();
+      }
 
-    var url1 = '/api/getAllTask/{{ project.id }}?status={{ qu_pa }}';
-    var url2 = '/projects/{{ project.id }}/tasks/';
+      var url1 = '/api/getAllTask/{{ project.id }}?status={{ qu_pa }}';
+      var url2 = '/projects/{{ project.id }}/tasks/';
 
-    table_element.DataTable({
-      ajax: {
-        url: window.location.origin + url1,
-        dataSrc: ''
-      },
+      table_element.DataTable({
+        ajax: {
+          url: window.location.origin + url1,
+          dataSrc: ''
+        },
 
-      order: [],
-      retrieve: true,
-      destroy: true,
+        order: [],
+        retrieve: true,
+        destroy: true,
 
-      language: {
-        url: assetsPath + 'json/i18n/datatables-bs5/fa.json'
-      },
+        language: {
+          url: assetsPath + 'json/i18n/datatables-bs5/fa.json'
+        },
 
-      columns: [
-        { data: 'title' },
-        { data: 'weight' },
-        {
-          data: 'time_difference',
-          render: function(data, type, full, meta) {
-            var text = '';
-            var badgeClass = '';
+        columns: [
+          { data: 'title' },
+          { data: 'weight' },
+          {
+            data: 'time_difference',
+            render: function(data, type, full, meta) {
+              var text = '';
+              var badgeClass = '';
 
-            if (data > 0) {
-              text = data + ' روز گذشته';
-              badgeClass = 'badge bg-label-danger';
-            } else if (data < 0) {
-              text = Math.abs(data) + ' روز مانده';
-              badgeClass = 'badge bg-label-success';
-            } else {
-              text = 'امروز';
-              badgeClass = 'badge bg-label-warning';
+              if (data > 0) {
+                text = data + ' روز گذشته';
+                badgeClass = 'badge bg-label-danger';
+              } else if (data < 0) {
+                text = Math.abs(data) + ' روز مانده';
+                badgeClass = 'badge bg-label-success';
+              } else {
+                text = 'امروز';
+                badgeClass = 'badge bg-label-warning';
+              }
+
+              return '<span class="' + badgeClass + '">' + text + '</span>';
             }
-
-            return '<span class="' + badgeClass + '">' + text + '</span>';
           }
-        }
-      ],
+        ],
 
-      responsive: true,
-      displayLength: 10,
-      lengthMenu: [10, 25, 50],
+        responsive: true,
+        displayLength: 10,
+        lengthMenu: [10, 25, 50],
 
-      dom:
-        '<"row"<"col-sm-12 col-md-6"l>' +
-        '<"col-sm-12 col-md-6 d-flex justify-content-end"f>>' +
-        't' +
-        '<"row"<"col-sm-12 col-md-6"i>' +
-        '<"col-sm-12 col-md-6"p>>',
+        dom:
+          '<"row"<"col-sm-12 col-md-6"l>' +
+          '<"col-sm-12 col-md-6 d-flex justify-content-end"f>>' +
+          't' +
+          '<"row"<"col-sm-12 col-md-6"i>' +
+          '<"col-sm-12 col-md-6"p>>',
 
-      rowCallback: function(row, data, index) {
-        $(row).css('cursor', 'pointer');
-        $(row).removeClass('my-task-row other-task-row');
+        rowCallback: function(row, data, index) {
+          $(row).css('cursor', 'pointer');
+          $(row).removeClass('my-task-row other-task-row');
 
-        if (data.is_my_task === true) {
-          $(row).addClass('my-task-row');
-        } else {
-          $(row).addClass('other-task-row');
-        }
-      },
-
-      drawCallback: function() {
-        var api = this.api();
-
-        $('#my_tasks_table tbody tr').off('click').on('click', function() {
-          var data = api.row(this).data();
-          if (data) {
-            window.location.href = url2 + data.id + '/?status={{ qu_pa }}';
+          if (data.is_my_task === true) {
+            $(row).addClass('my-task-row');
+          } else {
+            $(row).addClass('other-task-row');
           }
-        });
+        },
+
+        drawCallback: function() {
+          var api = this.api();
+
+          $('#my_tasks_table tbody tr').off('click').on('click', function() {
+            var data = api.row(this).data();
+            if (data) {
+              window.location.href = url2 + data.id + '/?status={{ qu_pa }}';
+            }
+          });
+        }
+      });
+    }
+
+    // اولین بار که صفحه لود می‌شه
+    $(document).ready(function() {
+      initMyTasksTable();
+    });
+
+    // وقتی با دکمه Back مرورگر برمی‌گردید (bfcache)
+    $(window).on('pageshow', function(event) {
+      if (event.originalEvent.persisted) {
+        initMyTasksTable();
       }
     });
-  }
-
-  // اولین بار که صفحه لود می‌شه
-  $(document).ready(function() {
-    initMyTasksTable();
-  });
-
-  // وقتی با دکمه Back مرورگر برمی‌گردید (bfcache)
-  $(window).on('pageshow', function(event) {
-    if (event.originalEvent.persisted) {
-      initMyTasksTable();
-    }
-  });
-</script>
+  </script>
   <style>
     .my-task-row {
       background-color: rgba(133, 240, 103, 0.08) !important;
@@ -461,9 +461,15 @@
             <div class="row">
               <div class="col-lg-4 col-md-12">
                 <div class="col-12 d-flex justify-content-start gap-2 align-content-center">
-                  <button class="btn btn-outline-primary w-100 mb-3 p-2" data-bs-target="#modalTop"
-                          data-bs-toggle="modal" type="">ایجاد تسک
-                  </button>
+                  {% if project.status == "in_progress" %}
+                    <button class="btn btn-outline-primary w-100 mb-3" data-bs-target="#modalTop" data-bs-toggle="modal"
+                            type="button">ایجاد تسک
+                    </button>
+                  {% else %}
+                    <button class="btn btn-outline-secondary w-100 mb-3" disabled type="button">
+                      <i class="ti ti-lock me-1"></i> ایجاد تسک
+                    </button>
+                  {% endif %}
                 </div>
                 <!-- DataTable with Buttons -->
                 <div class="card">
