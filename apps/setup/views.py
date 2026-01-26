@@ -202,8 +202,8 @@ def team_members_api(request, team_id):
 
     # نمایش نقش‌ها به فارسی
     role_display = {
-        'admin': 'مدیر مجموعه',
-        'manager': 'سرپرست تیم',
+        'admin': 'سرپرست تیم',
+        'manager': 'مدیر مجموعه',
         'user': 'کارشناس',
     }
 
