@@ -158,8 +158,8 @@
                   <div class="fw-semibold">${data}</div>
                     <small class="text-muted">
                         ${row.role === 'manager' ? 'مدیر مجموعه' :
-                        row.role === 'admin' ? 'سرپرست تیم' :
-                        'کارشناس'}
+                row.role === 'admin' ? 'سرپرست تیم' :
+                  'کارشناس'}
                   </small>
                 </div>
               </div>
@@ -258,7 +258,10 @@
 
           <!-- هدر: عنوان و بج وضعیت -->
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="card-title mb-0 text-heading fw-bold">{{ project.title }}</h4>
+            <h4 class="card-title mb-0 text-heading fw-bold">
+              {{ project.title }}
+              ({% if project.teams.all %}{{ project.teams.all|join:", " }}{% else %}بدون تیم{% endif %})
+            </h4>
 
             {% if project.status == 'not_started' %}
               <span class="badge bg-label-secondary px-3 py-2 rounded-pill">شروع نشده</span>
