@@ -312,10 +312,9 @@ class TasksDetail(TemplateView):
             if percent_val:
                 task.percent = float(percent_val)
 
-            if is_manager_or_admin:
-                weight_val = request.POST.get('weight')
-                if weight_val:
-                    task.weight = int(weight_val)
+            weight_val = request.POST.get('weight')
+            if weight_val:
+                task.weight = int(weight_val)
 
             deadline_shamsi = request.POST.get('deadline')
             if deadline_shamsi:
